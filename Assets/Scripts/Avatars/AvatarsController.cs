@@ -4,6 +4,7 @@ using System.Linq;
 using Twitch;
 using UI;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.U2D;
 
 namespace Avatars
@@ -22,7 +23,7 @@ namespace Avatars
         Camera m_camera;
         AvatarsStorage m_avatarsStorage;
         Vector2Int m_screenSize;
-        Rect m_avatarsArea;
+        [HideInInspector] public Rect avatarsArea;
 
         Sprite[] m_sprites;
 
@@ -33,19 +34,19 @@ namespace Avatars
             m_avatarsStorage = new AvatarsStorage();
             m_avatarsStorage.Init();
             m_sprites = m_avatarsStorage.GetSprites();
-            m_avatarsArea = Rect.zero;
+            avatarsArea = Rect.zero;
             var size = GetOffScreenSize() / pixelPerfectCamera.assetsPPU;
             var position = new Vector2(pixelPerfectCamera.transform.position.x - size.x / 2, pixelPerfectCamera.transform.position.y - size.y / 2);
-            m_avatarsArea.position = position;
-            m_avatarsArea.size = size;
+            avatarsArea.position = position;
+            avatarsArea.size = size;
             TwitchChatController.OnAvatarStarted += StartAvatar;
             TwitchChatController.OnAvatarPursuit += PursuitAvatar;
 
-            for (var i = 0; i < 1; i++)
-            {
-                StartAvatar($"petya{i}", "toad");
-                StartAvatar($"manya{i}", "scull");
-            }
+            // for (var i = 0; i < 1; i++)
+            // {
+            //     StartAvatar($"petya{i}", "toad");
+            //     StartAvatar($"manya{i}", "scull");
+            // }
         }
 
         public Sprite GetSprite(int id) => m_sprites[id];
@@ -77,8 +78,8 @@ namespace Avatars
             {
                 var size = GetOffScreenSize() / pixelPerfectCamera.assetsPPU;
                 var position = new Vector2(pixelPerfectCamera.transform.position.x - size.x / 2, pixelPerfectCamera.transform.position.y - size.y / 2);
-                m_avatarsArea.position = position;
-                m_avatarsArea.size = size;
+                avatarsArea.position = position;
+                avatarsArea.size = size;
             }
         }
 
@@ -89,21 +90,16 @@ namespace Avatars
 
             if (m_avatars.TryGetValue(userName, out var existingAvatar))
             {
-                Debug.Log($"Avatar {existingAvatar.avatarName} already exists");
                 if (existingAvatar.avatarName == avatarName) return;
-                var existPosition = m_avatars[userName].transform.position;
-                // Destroy(m_avatars[userName].gameObject);
                 var avatarIndices = m_avatarsStorage.GetAvatar(avatarName);
                 if (avatarIndices != null)
                 {
-                    m_avatars[userName].Init(pixelPerfectCamera, ref m_avatarsArea, avatarName, this, avatarIndices);
-                    // m_avatars[userName] = newAvatar;
-                    m_names[userName].SetTargetAvatar(m_avatars[userName].transform, canvas, m_camera, userName);    
+                    m_avatars[userName].Init(pixelPerfectCamera, avatarName, this, avatarIndices);
+                    m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userName);    
                 }
             }
             else
             {
-                Debug.Log($"Avatar {avatarName} does not exist");
                 if (CreateAvatar(userName, avatarName, Vector3.zero))
                 {
                     CreateUserName(userName);
@@ -117,7 +113,7 @@ namespace Avatars
             if (avatarIndices != null)
             {
                 var newAvatar = Instantiate(avatarPrefab, position, Quaternion.identity, transform).GetComponent<Avatar>();
-                newAvatar.Init(pixelPerfectCamera, ref m_avatarsArea, avatarName, this, avatarIndices);
+                newAvatar.Init(pixelPerfectCamera, avatarName, this, avatarIndices);
                 m_avatars[userName] = newAvatar;
                 return true;
             }
@@ -130,7 +126,7 @@ namespace Avatars
             var hisAvatar = m_avatars[userName];
             var avatarPosition = m_camera.WorldToScreenPoint(hisAvatar.transform.position);
             var un = Instantiate(userNamePrefab, avatarPosition, Quaternion.identity, canvas.transform).GetComponent<UserName>();
-            un.SetTargetAvatar(hisAvatar.transform, canvas, m_camera, userName);
+            un.SetTargetAvatar(hisAvatar, canvas, m_camera, userName);
             m_names[userName] = un;
         }
 
