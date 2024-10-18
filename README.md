@@ -60,7 +60,7 @@ Users can add custom avatar sprites to the directory: `StreamingAssets/Graphics/
 - `left`, `right`
 - `idle`, `left`, `attack`
 - `idle`, `right`, `attack`
-
+---
 ## Connecting the Application to Twitch via Two-Factor Authentication
 
 1. Go to [Twitch Developer Console](https://dev.twitch.tv/console).
@@ -82,5 +82,15 @@ Users can add custom avatar sprites to the directory: `StreamingAssets/Graphics/
 - You will need to re-enter the secret key into the application.
 - The secret key is provided by Twitch upon request and is shown only once in the application management on Twitch.
 - If you forget the secret key, you can generate a new one in Twitch's application management, but you will need to re-enter all fields in the application.
+
+---
+
+
+## Integration with OBS
+
+1. Add the application as a source in OBS.
+2. Add a filter: **Chroma Key**.
+3. Set the chroma key color to **magenta**.
+4. Resize and position the application window as desired.
 
 ---
