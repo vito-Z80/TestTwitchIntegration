@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Data;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.U2D;
 using Random = UnityEngine.Random;
 
@@ -22,23 +20,23 @@ namespace Avatars
         int m_currentFrame; //  текущий кадр анимации
 
         float m_angle;
-        float m_leaveTime;  //  время до уничтожения аватара
-        float m_frameTime;  //  время кадра анимации
-        float m_stateTime;  //  время состояния анимации одного направления
-        float m_idleTime;   //  время idle анимации
+        float m_leaveTime; //  время до уничтожения аватара
+        float m_frameTime; //  время кадра анимации
+        float m_stateTime; //  время состояния анимации одного направления
+        float m_idleTime; //  время idle анимации
         float m_flyCurrentSpeed; // Текущая скорость атакованной цели
 
-        float m_bottomOffset;
-        
-        const float StrikingDistance = 1.0f;    //  расстояние удара
+        // float m_bottomOffset;
+
+        const float StrikingDistance = 1.0f; //  расстояние удара
         const float FlyDeceleration = 1.5f; // Скорость замедления атакованной цели
-        
-        bool m_canDiagonalMovable;  //  true = можно перемещаться по диагонали
+
+        bool m_canDiagonalMovable; //  true = можно перемещаться по диагонали
         bool m_wasAttacked; //  true = был атакован
-        bool m_isAttackPermitted;   //  true = атака разрешена
-        bool m_isPursue;    //  true = преследует цель
-        bool m_gotHit;  //  true = получил в кабину
-        bool m_iFree;   //  true = можно переиспользовать (не реализовано)
+        bool m_isAttackPermitted; //  true = атака разрешена
+        bool m_isPursue; //  true = преследует цель
+        bool m_gotHit; //  true = получил в кабину
+        bool m_iFree; //  true = можно переиспользовать (не реализовано)
 
         Avatar m_targetAvatar;
 
@@ -50,6 +48,7 @@ namespace Avatars
 
         Vector3 m_randomTargetDirection;
         Vector3 m_flyDirection; // Направление движения атакованной цели
+        AreaOffset m_areaOffset;
 
         AvatarMove m_avatarMovement;
 
@@ -66,7 +65,7 @@ namespace Avatars
 
         public SpriteRenderer GetSpriteRenderer() => m_spriteRenderer ?? GetComponentInChildren<SpriteRenderer>();
 
-        public void Init(PixelPerfectCamera pixelPerfectCamera, Rect area, string avatarName, AvatarsController avatarsController, Dictionary<AvatarState, int[]> avatarIndices)
+        public void Init(PixelPerfectCamera pixelPerfectCamera, ref Rect area, string avatarName, AvatarsController avatarsController, Dictionary<AvatarState, int[]> avatarIndices)
         {
             m_iFree = false;
             m_avatars = avatarIndices;
@@ -91,7 +90,7 @@ namespace Avatars
 
         void Update()
         {
-            SetBottomOffset();
+            SetAreaVerticalOffset();
             var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime;
 
             m_leaveTime += Time.deltaTime;
@@ -100,7 +99,7 @@ namespace Avatars
                 // DestroyAvatar();
                 // return;
             }
-            
+
             if (!m_wasAttacked)
             {
                 if (m_currentState != AvatarState.AttackRight && m_currentState != AvatarState.AttackLeft)
@@ -122,14 +121,29 @@ namespace Avatars
             }
         }
 
-        void SetBottomOffset()
+        void SetAreaVerticalOffset()
         {
-            if (m_spriteRenderer?.sprite == null)
+            if (m_spriteRenderer?.sprite is null) return;
+
+            var spriteSize = m_spriteRenderer.sprite.bounds.size;
+            var pivot = m_spriteRenderer.sprite.pivot;
+
+
+            if (Mathf.Approximately(pivot.y, 0.0f))
             {
-                m_bottomOffset = 4.0f;
-                return;
+                m_areaOffset.Top = -spriteSize.y;
+                m_areaOffset.Bottom = 0.0f;
             }
-            m_bottomOffset = m_spriteRenderer.sprite.bounds.size.y;
+            else if (Mathf.Approximately(pivot.y, 1.0f))
+            {
+                m_areaOffset.Top = 0.0f;
+                m_areaOffset.Bottom = spriteSize.y;
+            }
+            else
+            {
+                m_areaOffset.Top = -(1.0f - pivot.y) * spriteSize.y;
+                m_areaOffset.Bottom = pivot.y * spriteSize.y;
+            }
         }
 
         void Fly(float deltaTime)
@@ -137,27 +151,27 @@ namespace Avatars
             if (m_flyCurrentSpeed > 0)
             {
                 transform.position += m_flyDirection * (m_flyCurrentSpeed * deltaTime);
-                
+
                 if (transform.position.x < m_area.xMin)
                 {
                     transform.position = new Vector3(m_area.xMin, transform.position.y, transform.position.z);
-                    m_flyDirection.x = Mathf.Abs(m_flyDirection.x); 
+                    m_flyDirection.x = Mathf.Abs(m_flyDirection.x);
                 }
                 else if (transform.position.x > m_area.xMax)
                 {
                     transform.position = new Vector3(m_area.xMax, transform.position.y, transform.position.z);
-                    m_flyDirection.x = -Mathf.Abs(m_flyDirection.x); 
+                    m_flyDirection.x = -Mathf.Abs(m_flyDirection.x);
                 }
 
-                if (transform.position.y < m_area.yMin + m_bottomOffset)
+                if (transform.position.y < m_area.yMin + m_areaOffset.Bottom)
                 {
-                    transform.position = new Vector3(transform.position.x, m_area.yMin + m_bottomOffset, transform.position.z);
+                    transform.position = new Vector3(transform.position.x, m_area.yMin + m_areaOffset.Bottom, transform.position.z);
                     m_flyDirection.y = Mathf.Abs(m_flyDirection.y);
                 }
-                else if (transform.position.y > m_area.yMax)
+                else if (transform.position.y > m_area.yMax + m_areaOffset.Top)
                 {
-                    transform.position = new Vector3(transform.position.x, m_area.yMax, transform.position.z);
-                    m_flyDirection.y = -Mathf.Abs(m_flyDirection.y); 
+                    transform.position = new Vector3(transform.position.x, m_area.yMax + m_areaOffset.Top, transform.position.z);
+                    m_flyDirection.y = -Mathf.Abs(m_flyDirection.y);
                 }
 
                 m_flyCurrentSpeed -= FlyDeceleration * Time.deltaTime;
@@ -226,8 +240,9 @@ namespace Avatars
 
             if (Mathf.Abs(transform.position.y - m_randomTargetDirection.y) < 0.00625f)
             {
-                m_randomTargetDirection.y = Random.Range(m_area.min.y  + m_bottomOffset, m_area.max.y);
+                m_randomTargetDirection.y = Random.Range(m_area.min.y + m_areaOffset.Bottom, m_area.max.y + m_areaOffset.Top);
             }
+
             m_currentState = transform.position.x > m_randomTargetDirection.x ? AvatarState.Left : AvatarState.Right;
         }
 

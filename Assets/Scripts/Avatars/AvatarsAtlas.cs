@@ -38,7 +38,7 @@ namespace Avatars
                     m_uvRects[id].width * m_atlasTexture.width,
                     m_uvRects[id].height * m_atlasTexture.height
                 );
-                var sprite = Sprite.Create(m_atlasTexture, pixelRect, new Vector2(0.5f, 1.0f), 16.0f, 0, SpriteMeshType.FullRect);
+                var sprite = Sprite.Create(m_atlasTexture, pixelRect, new Vector2(0.5f, 0.0f), 16.0f, 0, SpriteMeshType.FullRect);
 
                 m_sprites[id] = sprite;
             }

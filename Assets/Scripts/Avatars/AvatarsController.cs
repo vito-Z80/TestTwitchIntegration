@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Twitch;
 using UI;
 using UnityEngine;
@@ -58,7 +59,7 @@ namespace Avatars
                 {
                     if (targetNickname != attackerNickname)
                     {
-                        attackerAvatar.StartPursuit(targetAvatar);   
+                        attackerAvatar.StartPursuit(targetAvatar);
                     }
                 }
             }
@@ -88,28 +89,40 @@ namespace Avatars
 
             if (m_avatars.TryGetValue(userName, out var existingAvatar))
             {
+                Debug.Log($"Avatar {existingAvatar.avatarName} already exists");
                 if (existingAvatar.avatarName == avatarName) return;
                 var existPosition = m_avatars[userName].transform.position;
-                Destroy(m_avatars[userName].gameObject);
-                CreateAvatar(userName, avatarName, existPosition);
-                m_names[userName].SetTargetAvatar(m_avatars[userName].transform, canvas, m_camera, userName);
+                // Destroy(m_avatars[userName].gameObject);
+                var avatarIndices = m_avatarsStorage.GetAvatar(avatarName);
+                if (avatarIndices != null)
+                {
+                    m_avatars[userName].Init(pixelPerfectCamera, ref m_avatarsArea, avatarName, this, avatarIndices);
+                    // m_avatars[userName] = newAvatar;
+                    m_names[userName].SetTargetAvatar(m_avatars[userName].transform, canvas, m_camera, userName);    
+                }
             }
             else
             {
-                CreateAvatar(userName, avatarName, Vector3.zero);
-                CreateUserName(userName);
+                Debug.Log($"Avatar {avatarName} does not exist");
+                if (CreateAvatar(userName, avatarName, Vector3.zero))
+                {
+                    CreateUserName(userName);
+                }
             }
         }
 
-        void CreateAvatar(string userName, string avatarName, Vector3 position)
+        bool CreateAvatar(string userName, string avatarName, Vector3 position)
         {
             var avatarIndices = m_avatarsStorage.GetAvatar(avatarName);
             if (avatarIndices != null)
             {
                 var newAvatar = Instantiate(avatarPrefab, position, Quaternion.identity, transform).GetComponent<Avatar>();
-                newAvatar.Init(pixelPerfectCamera, m_avatarsArea, avatarName, this, avatarIndices);
+                newAvatar.Init(pixelPerfectCamera, ref m_avatarsArea, avatarName, this, avatarIndices);
                 m_avatars[userName] = newAvatar;
+                return true;
             }
+
+            return false;
         }
 
         void CreateUserName(string userName)
