@@ -45,7 +45,7 @@ namespace Images
             var texture = GetTexture(imageFileNames[0]);
             var sprite = GetSprite(texture);
 
-            var patterns = GetPatterns(textFileNames[0]);
+            var patterns = textFileNames.Length > 0 ? GetPatterns(textFileNames[0]) : new HashSet<string>();
             var name = imageFolder.Split("\\").Last().ToLower();
             patterns.Add($"{UserStartPattern}{name}");
 
