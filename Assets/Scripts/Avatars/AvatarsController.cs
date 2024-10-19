@@ -155,8 +155,9 @@ namespace Avatars
         bool WasWindowResized()
         {
             if (Screen.width == m_screenSize.x && Screen.height == m_screenSize.y) return false;
-            m_screenSize.x = Screen.width;
-            m_screenSize.y = Screen.height;
+            m_screenSize.x = Screen.width / 2 * 2;
+            m_screenSize.y = Screen.height / 2 * 2;
+            Screen.SetResolution(m_screenSize.x, m_screenSize.y, FullScreenMode.Windowed);
             return true;
         }
 
