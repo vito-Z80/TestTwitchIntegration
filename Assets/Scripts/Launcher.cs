@@ -52,6 +52,8 @@ public class Launcher : MonoBehaviour
         Application.runInBackground = true;
         m_connect = new Connect(connectPanel);
         await m_connect.AutoConnectTwitch();
+        Application.targetFrameRate = 60;
+        Application.runInBackground = true;
     }
 
 

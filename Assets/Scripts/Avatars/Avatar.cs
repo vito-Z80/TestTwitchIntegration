@@ -65,6 +65,12 @@ namespace Avatars
 
         public SpriteRenderer GetSpriteRenderer() => m_spriteRenderer ?? GetComponentInChildren<SpriteRenderer>();
 
+
+        public bool HasState(AvatarState state)
+        {
+            return m_avatars.ContainsKey(state);
+        }
+
         public void Init(PixelPerfectCamera pixelPerfectCamera, string avatarName, AvatarsController avatarsController, Dictionary<AvatarState, int[]> avatarIndices)
         {
             m_iFree = false;
@@ -92,7 +98,7 @@ namespace Avatars
         {
             m_area = m_avatarsController.avatarsArea;
             SetAreaVerticalOffset();
-            
+
             var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime;
 
             m_leaveTime += Time.deltaTime;
@@ -193,7 +199,7 @@ namespace Avatars
             //         OvalMovement(deltaTime);
             //         break;
             //     case AvatarMove.Random:
-                    RandomMovement(deltaTime);
+            RandomMovement(deltaTime);
             //         break;
             //     default:
             //         throw new ArgumentOutOfRangeException();
@@ -340,6 +346,12 @@ namespace Avatars
             m_isPursue = true;
             while (distance > StrikingDistance)
             {
+                if (!HasState(AvatarState.AttackLeft))
+                {
+                    m_isAttackPermitted = true;
+                    m_isPursue = false;
+                    yield break;
+                };
                 distance = Vector3.Distance(transform.position, m_targetAvatar.transform.position);
                 var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime * 2.0f;
                 direction = (m_targetAvatar.transform.position - transform.position).normalized;
@@ -347,6 +359,7 @@ namespace Avatars
                 m_currentState = direction.x <= 0.0f ? AvatarState.Left : AvatarState.Right;
                 yield return null;
             }
+
 
             //  цель должна остановиться когда ее настигли.
             m_targetAvatar.WasAttacked();

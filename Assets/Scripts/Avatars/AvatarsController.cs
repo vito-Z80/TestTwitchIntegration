@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Data;
 using Twitch;
 using UI;
 using UnityEngine;
@@ -53,14 +54,16 @@ namespace Avatars
 
         void PursuitAvatar(string attackerNickname, string targetNickname)
         {
-            // Debug.Log($"Pursuit {attackerNickname} to {targetNickname}");
             if (m_avatars.TryGetValue(attackerNickname, out var attackerAvatar))
             {
-                if (m_avatars.TryGetValue(targetNickname, out var targetAvatar))
+                if (attackerAvatar.HasState(AvatarState.AttackLeft) || attackerAvatar.HasState(AvatarState.AttackRight))
                 {
-                    if (targetNickname != attackerNickname)
+                    if (m_avatars.TryGetValue(targetNickname, out var targetAvatar))
                     {
-                        attackerAvatar.StartPursuit(targetAvatar);
+                        if (targetNickname != attackerNickname)
+                        {
+                            attackerAvatar.StartPursuit(targetAvatar);
+                        }
                     }
                 }
             }
@@ -95,7 +98,7 @@ namespace Avatars
                 if (avatarIndices != null)
                 {
                     m_avatars[userName].Init(pixelPerfectCamera, avatarName, this, avatarIndices);
-                    m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userName);    
+                    m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userName);
                 }
             }
             else
