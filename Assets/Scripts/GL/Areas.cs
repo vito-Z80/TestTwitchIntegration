@@ -5,24 +5,41 @@ namespace gl
 {
     public class Areas : MonoBehaviour
     {
-        [SerializeField] PixelPerfectCamera pixelPerfectCamera;
         [SerializeField] SpriteRenderer spriteRenderer;
 
+        Launcher m_;
+        PixelPerfectCamera m_pixelPerfectCamera;
         Camera m_camera;
-        Vector2 m_screenSize;
 
+        bool m_startDrag;
+
+        Vector3 m_startDragPosition;
+        Vector3 m_offsetDragPosition;
+        Vector3 m_lastMousePosition;
+
+
+        void OnEnable()
+        {
+            Configuration.OnAvatarAreaHorizontalChanged += ChangeAvatarAreaHorizontalSize;
+            Configuration.OnAvatarAreaVerticalChanged += ChangeAvatarAreaVertical;
+        }
+
+        void OnDisable()
+        {
+            Configuration.OnAvatarAreaHorizontalChanged -= ChangeAvatarAreaHorizontalSize;
+            Configuration.OnAvatarAreaVerticalChanged -= ChangeAvatarAreaVertical;
+        }
 
         void Start()
         {
-            m_camera = pixelPerfectCamera.GetComponent<Camera>();
-            m_screenSize = Utils.GetOffScreenSize(pixelPerfectCamera) / pixelPerfectCamera.assetsPPU;
-            FillScreen();
+            m_ = Launcher.Instance;
+            m_pixelPerfectCamera = m_.Ppc;
+            m_camera = m_.Camera;
         }
 
 
         void Update()
         {
-            m_screenSize = Utils.GetOffScreenSize(pixelPerfectCamera) / pixelPerfectCamera.assetsPPU;
             Drag();
 
             if (m_offsetDragPosition != Vector3.zero)
@@ -30,39 +47,9 @@ namespace gl
                 var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position += m_offsetDragPosition);
                 spriteRenderer.transform.position = pos;
             }
+
+            //  TODO изменить размеры площади.
         }
-
-        void FillHorizontal()
-        {
-        }
-
-        void FIllVertical()
-        {
-        }
-
-        void FillScreen()
-        {
-        }
-
-        Vector3 FitScreen(Bounds bounds, Vector3 position)
-        {
-            var minX = pixelPerfectCamera.transform.position.x - m_screenSize.x / 2.0f + bounds.extents.x;
-            var maxX = pixelPerfectCamera.transform.position.x + m_screenSize.x / 2.0f - bounds.extents.x;
-
-            var minY = pixelPerfectCamera.transform.position.y - m_screenSize.y / 2.0f + bounds.extents.y;
-            var maxY = pixelPerfectCamera.transform.position.y + m_screenSize.y / 2.0f - bounds.extents.y;
-
-            var x = Mathf.Clamp(position.x, minX, maxX);
-            var y = Mathf.Clamp(position.y, minY, maxY);
-
-            return new Vector3(x, y, 0.0f);
-        }
-
-
-        bool m_startDrag;
-        Vector3 m_startDragPosition;
-        Vector3 m_offsetDragPosition;
-        Vector3 m_lastMousePosition;
 
         void Drag()
         {
@@ -77,7 +64,7 @@ namespace gl
                 m_startDrag = false;
             }
 
-            
+
             if (m_startDrag)
             {
                 var currentPosition = GetCursorPosition();
@@ -85,7 +72,6 @@ namespace gl
                 m_lastMousePosition = currentPosition;
 
                 m_startDrag = !OutOfScreen();
-
             }
             else
             {
@@ -108,11 +94,55 @@ namespace gl
         bool OutOfScreen()
         {
             var pos = GetCursorPosition();
-            var minX = pixelPerfectCamera.transform.position.x - m_screenSize.x / 2.0f;
-            var maxX = pixelPerfectCamera.transform.position.x + m_screenSize.x / 2.0f;
-            var minY = pixelPerfectCamera.transform.position.y - m_screenSize.y / 2.0f;
-            var maxY = pixelPerfectCamera.transform.position.y + m_screenSize.y / 2.0f;
+            var minX = m_pixelPerfectCamera.transform.position.x - m_.WorldSize.x / 2.0f;
+            var maxX = m_pixelPerfectCamera.transform.position.x + m_.WorldSize.x / 2.0f;
+            var minY = m_pixelPerfectCamera.transform.position.y - m_.WorldSize.y / 2.0f;
+            var maxY = m_pixelPerfectCamera.transform.position.y + m_.WorldSize.y / 2.0f;
             return pos.x < minX || pos.y < minY || pos.x > maxX || pos.y > maxY;
+        }
+
+        Vector3 FitScreen(Bounds bounds, Vector3 position)
+        {
+            var minX = m_pixelPerfectCamera.transform.position.x - m_.WorldSize.x / 2.0f + bounds.extents.x;
+            var maxX = m_pixelPerfectCamera.transform.position.x + m_.WorldSize.x / 2.0f - bounds.extents.x;
+
+            var minY = m_pixelPerfectCamera.transform.position.y - m_.WorldSize.y / 2.0f + bounds.extents.y;
+            var maxY = m_pixelPerfectCamera.transform.position.y + m_.WorldSize.y / 2.0f - bounds.extents.y;
+
+            var x = Mathf.Clamp(position.x, minX, maxX);
+            var y = Mathf.Clamp(position.y, minY, maxY);
+
+            return new Vector3(x, y, 0.0f);
+        }
+
+        public void FillAvatarsAreaHorizontal()
+        {
+            spriteRenderer.transform.localScale = new Vector3(m_.WorldSize.x, spriteRenderer.transform.localScale.y, 1.0f);
+            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
+            spriteRenderer.transform.position = pos;
+            Launcher.Instance.config.avatarAreaHorizontalSlider.value = m_.WorldSize.x / spriteRenderer.transform.localScale.x;
+        }
+
+        public void FIllAvatarsAreaVertical()
+        {
+            spriteRenderer.transform.localScale = new Vector3(spriteRenderer.transform.localScale.x, m_.WorldSize.y, 1.0f);
+            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
+            spriteRenderer.transform.position = pos;
+            Launcher.Instance.config.avatarAreaVerticalSlider.value = m_.WorldSize.y / spriteRenderer.transform.localScale.y;
+        }
+
+        void ChangeAvatarAreaHorizontalSize(float sizeX)
+        {
+            spriteRenderer.transform.localScale = new Vector3(sizeX, spriteRenderer.transform.localScale.y, 1.0f);
+            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
+            spriteRenderer.transform.position = pos;
+        }
+
+        public void ChangeAvatarAreaVertical(float sizeY)
+        {
+            spriteRenderer.transform.localScale = new Vector3(spriteRenderer.transform.localScale.x, sizeY, 1.0f);
+            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
+            spriteRenderer.transform.position = pos;
         }
     }
 }

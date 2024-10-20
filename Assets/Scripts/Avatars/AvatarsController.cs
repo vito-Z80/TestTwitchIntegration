@@ -12,7 +12,6 @@ namespace Avatars
 {
     public class AvatarsController : MonoBehaviour
     {
-        [SerializeField] PixelPerfectCamera pixelPerfectCamera;
         [SerializeField] Canvas canvas;
         [SerializeField] GameObject avatarPrefab;
         [SerializeField] GameObject userNamePrefab;
@@ -20,7 +19,8 @@ namespace Avatars
         readonly Dictionary<string, Avatar> m_avatars = new(); //  string:userName, Avatar:avatar
         readonly Dictionary<string, UserName> m_names = new(); //  string:userName, Avatar:avatar
 
-
+        
+        PixelPerfectCamera m_pixelPerfectCamera;
         Camera m_camera;
         AvatarsStorage m_avatarsStorage;
         Vector2Int m_screenSize;
@@ -28,26 +28,22 @@ namespace Avatars
 
         Sprite[] m_sprites;
 
+        
 
         void Start()
         {
-            m_camera = pixelPerfectCamera.GetComponent<Camera>();
+            m_pixelPerfectCamera = Launcher.Instance.Ppc;
+            m_camera = Launcher.Instance.Camera;
             m_avatarsStorage = new AvatarsStorage();
             m_avatarsStorage.Init();
             m_sprites = m_avatarsStorage.GetSprites();
             avatarsArea = Rect.zero;
-            var size = GetOffScreenSize() / pixelPerfectCamera.assetsPPU;
-            var position = new Vector2(pixelPerfectCamera.transform.position.x - size.x / 2, pixelPerfectCamera.transform.position.y - size.y / 2);
+            var size = GetOffScreenSize() / m_pixelPerfectCamera.assetsPPU;
+            var position = new Vector2(m_pixelPerfectCamera.transform.position.x - size.x / 2, m_pixelPerfectCamera.transform.position.y - size.y / 2);
             avatarsArea.position = position;
             avatarsArea.size = size;
             TwitchChatController.OnAvatarStarted += StartAvatar;
             TwitchChatController.OnAvatarPursuit += PursuitAvatar;
-
-            // for (var i = 0; i < 1; i++)
-            // {
-            //     StartAvatar($"petya{i}", "toad");
-            //     StartAvatar($"manya{i}", "scull");
-            // }
         }
 
         public Sprite GetSprite(int id) => m_sprites[id];
@@ -79,8 +75,8 @@ namespace Avatars
         {
             if (WasWindowResized())
             {
-                var size = GetOffScreenSize() / pixelPerfectCamera.assetsPPU;
-                var position = new Vector2(pixelPerfectCamera.transform.position.x - size.x / 2, pixelPerfectCamera.transform.position.y - size.y / 2);
+                var size = GetOffScreenSize() / m_pixelPerfectCamera.assetsPPU;
+                var position = new Vector2(m_pixelPerfectCamera.transform.position.x - size.x / 2, m_pixelPerfectCamera.transform.position.y - size.y / 2);
                 avatarsArea.position = position;
                 avatarsArea.size = size;
             }
@@ -97,7 +93,7 @@ namespace Avatars
                 var avatarIndices = m_avatarsStorage.GetAvatar(avatarName);
                 if (avatarIndices != null)
                 {
-                    m_avatars[userName].Init(pixelPerfectCamera, avatarName, this, avatarIndices);
+                    m_avatars[userName].Init(m_pixelPerfectCamera, avatarName, this, avatarIndices);
                     m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userName);
                 }
             }
@@ -116,7 +112,7 @@ namespace Avatars
             if (avatarIndices != null)
             {
                 var newAvatar = Instantiate(avatarPrefab, position, Quaternion.identity, transform).GetComponent<Avatar>();
-                newAvatar.Init(pixelPerfectCamera, avatarName, this, avatarIndices);
+                newAvatar.Init(m_pixelPerfectCamera, avatarName, this, avatarIndices);
                 m_avatars[userName] = newAvatar;
                 return true;
             }
@@ -135,8 +131,8 @@ namespace Avatars
 
         Vector2 GetOffScreenSize()
         {
-            int refResolutionX = pixelPerfectCamera.refResolutionX;
-            int refResolutionY = pixelPerfectCamera.refResolutionY;
+            int refResolutionX = m_pixelPerfectCamera.refResolutionX;
+            int refResolutionY = m_pixelPerfectCamera.refResolutionY;
 
             int screenWidth = Screen.width;
             int screenHeight = Screen.height;
@@ -159,6 +155,39 @@ namespace Avatars
             m_screenSize.y = Screen.height / 2 * 2;
             Screen.SetResolution(m_screenSize.x, m_screenSize.y, FullScreenMode.Windowed);
             return true;
+        }
+
+        void OnEnable()
+        {
+            Configuration.OnAvatarsTest += TestAvatars;
+        }
+
+        void TestAvatars(bool isTest)
+        {
+            if (isTest)
+            {
+                for (var i = 0; i < 20; i++)
+                {
+                    StartAvatar($"testName_{i}", "toad");
+                }    
+            }
+            else
+            {
+                //  TODO нинада так... пул сделай !!!
+
+                foreach (var avatar in m_avatars.Values)
+                {
+                    Destroy(avatar.gameObject);
+                }
+
+                foreach (var value in m_names.Values)
+                {
+                    Destroy(value.gameObject);
+                }
+                m_avatars.Clear();
+                m_names.Clear();
+            }
+            
         }
 
         void OnDestroy()

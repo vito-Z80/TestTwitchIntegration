@@ -99,7 +99,7 @@ namespace Avatars
             m_area = m_avatarsController.avatarsArea;
             SetAreaVerticalOffset();
 
-            var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime;
+            var deltaTime = Time.deltaTime * Launcher.Instance.config.avatarsSpeed;
 
             m_leaveTime += Time.deltaTime;
             if (m_leaveTime > 5 * 60)
