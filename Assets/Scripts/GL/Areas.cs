@@ -1,11 +1,15 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.U2D;
 
 namespace gl
 {
     public class Areas : MonoBehaviour
     {
-        [SerializeField] SpriteRenderer spriteRenderer;
+        SpriteRenderer m_spriteRenderer;
+
+
+        public static Action<Rect> OnRectSizeChanged;
 
         Launcher m_;
         PixelPerfectCamera m_pixelPerfectCamera;
@@ -33,6 +37,7 @@ namespace gl
         void Start()
         {
             m_ = Launcher.Instance;
+            m_spriteRenderer = GetComponent<SpriteRenderer>();
             m_pixelPerfectCamera = m_.Ppc;
             m_camera = m_.Camera;
         }
@@ -44,8 +49,8 @@ namespace gl
 
             if (m_offsetDragPosition != Vector3.zero)
             {
-                var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position += m_offsetDragPosition);
-                spriteRenderer.transform.position = pos;
+                var pos = FitScreen(m_spriteRenderer.bounds, m_spriteRenderer.transform.position += m_offsetDragPosition);
+                m_spriteRenderer.transform.position = pos;
             }
 
             //  TODO изменить размеры площади.
@@ -57,7 +62,7 @@ namespace gl
             {
                 m_startDragPosition = GetCursorPosition();
                 m_lastMousePosition = m_startDragPosition;
-                m_startDrag = Contains(spriteRenderer.bounds, m_startDragPosition);
+                m_startDrag = Contains(m_spriteRenderer.bounds, m_startDragPosition);
             }
             else if (Input.GetMouseButtonUp(0))
             {
@@ -112,37 +117,40 @@ namespace gl
             var x = Mathf.Clamp(position.x, minX, maxX);
             var y = Mathf.Clamp(position.y, minY, maxY);
 
-            return new Vector3(x, y, 0.0f);
+            var pos = new Vector3(x, y, 0);
+            var rect = new Rect(pos - m_spriteRenderer.bounds.extents, m_spriteRenderer.bounds.size);
+            OnRectSizeChanged?.Invoke(rect);
+            return pos;
         }
 
         public void FillAvatarsAreaHorizontal()
         {
-            spriteRenderer.transform.localScale = new Vector3(m_.WorldSize.x, spriteRenderer.transform.localScale.y, 1.0f);
-            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
-            spriteRenderer.transform.position = pos;
-            Launcher.Instance.config.avatarAreaHorizontalSlider.value = m_.WorldSize.x / spriteRenderer.transform.localScale.x;
+            m_spriteRenderer.transform.localScale = new Vector3(m_.WorldSize.x, m_spriteRenderer.transform.localScale.y, 1.0f);
+            var pos = FitScreen(m_spriteRenderer.bounds, m_spriteRenderer.transform.position);
+            m_spriteRenderer.transform.position = pos;
+            Launcher.Instance.config.avatarAreaHorizontalSlider.value = m_.WorldSize.x / m_spriteRenderer.transform.localScale.x;
         }
 
         public void FIllAvatarsAreaVertical()
         {
-            spriteRenderer.transform.localScale = new Vector3(spriteRenderer.transform.localScale.x, m_.WorldSize.y, 1.0f);
-            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
-            spriteRenderer.transform.position = pos;
-            Launcher.Instance.config.avatarAreaVerticalSlider.value = m_.WorldSize.y / spriteRenderer.transform.localScale.y;
+            m_spriteRenderer.transform.localScale = new Vector3(m_spriteRenderer.transform.localScale.x, m_.WorldSize.y, 1.0f);
+            var pos = FitScreen(m_spriteRenderer.bounds, m_spriteRenderer.transform.position);
+            m_spriteRenderer.transform.position = pos;
+            Launcher.Instance.config.avatarAreaVerticalSlider.value = m_.WorldSize.y / m_spriteRenderer.transform.localScale.y;
         }
 
         void ChangeAvatarAreaHorizontalSize(float sizeX)
         {
-            spriteRenderer.transform.localScale = new Vector3(sizeX, spriteRenderer.transform.localScale.y, 1.0f);
-            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
-            spriteRenderer.transform.position = pos;
+            m_spriteRenderer.transform.localScale = new Vector3(sizeX, m_spriteRenderer.transform.localScale.y, 1.0f);
+            var pos = FitScreen(m_spriteRenderer.bounds, m_spriteRenderer.transform.position);
+            m_spriteRenderer.transform.position = pos;
         }
 
         public void ChangeAvatarAreaVertical(float sizeY)
         {
-            spriteRenderer.transform.localScale = new Vector3(spriteRenderer.transform.localScale.x, sizeY, 1.0f);
-            var pos = FitScreen(spriteRenderer.bounds, spriteRenderer.transform.position);
-            spriteRenderer.transform.position = pos;
+            m_spriteRenderer.transform.localScale = new Vector3(m_spriteRenderer.transform.localScale.x, sizeY, 1.0f);
+            var pos = FitScreen(m_spriteRenderer.bounds, m_spriteRenderer.transform.position);
+            m_spriteRenderer.transform.position = pos;
         }
     }
 }

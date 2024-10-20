@@ -9,8 +9,7 @@ public class Configuration : MonoBehaviour
     [SerializeField] public Slider avatarAreaHorizontalSlider;
     [SerializeField] public Slider avatarAreaVerticalSlider;
 
-    [Header("Toggles")] 
-    [SerializeField] Toggle testAvatars;
+    [Header("Toggles")] [SerializeField] Toggle testAvatars;
     [SerializeField] Toggle pixelSnap;
 
     [Header("Values")] [SerializeField] public float avatarsSpeed;
@@ -25,17 +24,17 @@ public class Configuration : MonoBehaviour
     public static event Action<bool> OnAvatarsTest;
     public static event Action<bool> OnPixelSnap;
 
-    void Start()
+    void Awake()
     {
-        avatarSpeedSlider.value = (MaxAvatarSpeed / avatarsSpeed) * 0.1f;
-        worldSizeSlider.value = (MaxWorldSize / worldSize) * 0.1f;
+        worldSizeSlider.value = 1.0f / MaxWorldSize * worldSize;
+        avatarSpeedSlider.value = 1.0f / MaxAvatarSpeed * avatarsSpeed;
     }
 
     public void PixelSnap()
     {
         OnPixelSnap?.Invoke(pixelSnap.isOn);
     }
-    
+
     public void TestAvatars()
     {
         OnAvatarsTest?.Invoke(testAvatars.isOn);

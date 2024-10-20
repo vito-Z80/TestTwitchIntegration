@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Data;
+using gl;
 using Twitch;
 using UI;
 using UnityEngine;
@@ -24,7 +25,7 @@ namespace Avatars
         Camera m_camera;
         AvatarsStorage m_avatarsStorage;
         Vector2Int m_screenSize;
-        [HideInInspector] public Rect avatarsArea;
+        public Rect avatarsArea;
 
         Sprite[] m_sprites;
 
@@ -37,11 +38,11 @@ namespace Avatars
             m_avatarsStorage = new AvatarsStorage();
             m_avatarsStorage.Init();
             m_sprites = m_avatarsStorage.GetSprites();
-            avatarsArea = Rect.zero;
+            // avatarsArea = Rect.zero;
             var size = GetOffScreenSize() / m_pixelPerfectCamera.assetsPPU;
             var position = new Vector2(m_pixelPerfectCamera.transform.position.x - size.x / 2, m_pixelPerfectCamera.transform.position.y - size.y / 2);
-            avatarsArea.position = position;
-            avatarsArea.size = size;
+            // avatarsArea.position = position;
+            // avatarsArea.size = size;
             TwitchChatController.OnAvatarStarted += StartAvatar;
             TwitchChatController.OnAvatarPursuit += PursuitAvatar;
         }
@@ -77,8 +78,8 @@ namespace Avatars
             {
                 var size = GetOffScreenSize() / m_pixelPerfectCamera.assetsPPU;
                 var position = new Vector2(m_pixelPerfectCamera.transform.position.x - size.x / 2, m_pixelPerfectCamera.transform.position.y - size.y / 2);
-                avatarsArea.position = position;
-                avatarsArea.size = size;
+                // avatarsArea.position = position;
+                // avatarsArea.size = size;
             }
         }
 
@@ -156,10 +157,23 @@ namespace Avatars
             Screen.SetResolution(m_screenSize.x, m_screenSize.y, FullScreenMode.Windowed);
             return true;
         }
+        
+        void SetAvatarsRect(Rect rect)
+        {
+            avatarsArea.position = rect.position;
+            avatarsArea.size = rect.size;
+        }
 
         void OnEnable()
         {
             Configuration.OnAvatarsTest += TestAvatars;
+            Areas.OnRectSizeChanged += SetAvatarsRect;
+        }
+
+        void OnDisable()
+        {
+            Configuration.OnAvatarsTest -= TestAvatars;
+            Areas.OnRectSizeChanged -= SetAvatarsRect;
         }
 
         void TestAvatars(bool isTest)
