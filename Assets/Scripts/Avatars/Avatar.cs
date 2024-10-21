@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Data;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.U2D;
 using Random = UnityEngine.Random;
 
@@ -26,6 +27,7 @@ namespace Avatars
         float m_idleTime; //  время idle анимации
         float m_flyCurrentSpeed; // Текущая скорость атакованной цели
 
+        public float randomSpeed;
         // float m_bottomOffset;
 
         const float StrikingDistance = 1.0f; //  расстояние удара
@@ -73,6 +75,9 @@ namespace Avatars
 
         public void Init(PixelPerfectCamera pixelPerfectCamera, string avatarName, AvatarsController avatarsController, Dictionary<AvatarState, int[]> avatarIndices)
         {
+
+            randomSpeed = 1.0f;
+            
             m_iFree = false;
             m_avatars = avatarIndices;
             m_avatarsController = avatarsController;
@@ -99,7 +104,7 @@ namespace Avatars
             m_area = m_avatarsController.avatarsArea;
             SetAreaVerticalOffset();
 
-            var deltaTime = Time.deltaTime * Launcher.Instance.config.avatarsSpeed;
+            var deltaTime = Time.deltaTime * Launcher.Instance.config.avatarsSpeed * randomSpeed;
 
             m_leaveTime += Time.deltaTime;
             if (m_leaveTime > 5 * 60)

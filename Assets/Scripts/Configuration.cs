@@ -1,4 +1,6 @@
 ﻿using System;
+using Data;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,26 +10,43 @@ public class Configuration : MonoBehaviour
     [SerializeField] public Slider worldSizeSlider;
     [SerializeField] public Slider avatarAreaHorizontalSlider;
     [SerializeField] public Slider avatarAreaVerticalSlider;
+    [SerializeField] public Slider imageScaleSlider;
 
-    [Header("Toggles")] [SerializeField] Toggle testAvatars;
+    [Header("Toggles")] [SerializeField] Toggle show;
     [SerializeField] Toggle pixelSnap;
+    [SerializeField] public Toggle randomSpeed;
 
     [Header("Values")] [SerializeField] public float avatarsSpeed;
     [SerializeField] public float worldSize;
 
-    const float MaxAvatarSpeed = 10.0f;
-    const float MaxWorldSize = 24.0f;
+    [Header("Dropdown")] [SerializeField] public TMP_Dropdown chromakey;
 
-    public static event Action<int> OnWorldSizeChanged;
+    const float MaxAvatarSpeed = 10.0f;
+    public const float MaxWorldSize = 24.0f;
+
+    public static event Action<float> OnWorldSizeChanged;
     public static event Action<float> OnAvatarAreaHorizontalChanged;
     public static event Action<float> OnAvatarAreaVerticalChanged;
-    public static event Action<bool> OnAvatarsTest;
+    public static event Action<bool> OnShowTest;
     public static event Action<bool> OnPixelSnap;
+    public static event Action<bool> OnRandomSpeed;
+    public static event Action<float> OnImageScaleChanged;
 
     void Awake()
     {
-        worldSizeSlider.value = 1.0f / MaxWorldSize * worldSize;
-        avatarSpeedSlider.value = 1.0f / MaxAvatarSpeed * avatarsSpeed;
+        // worldSizeSlider.value = 1.0f / MaxWorldSize * worldSize;
+        // avatarSpeedSlider.value = 1.0f / MaxAvatarSpeed * avatarsSpeed;
+    }
+
+
+    public void SetImageScale()
+    {
+        OnImageScaleChanged?.Invoke(imageScaleSlider.value);
+    }
+    
+    public void SetRandomSpeed()
+    {
+        OnRandomSpeed?.Invoke(randomSpeed.isOn);
     }
 
     public void PixelSnap()
@@ -35,9 +54,9 @@ public class Configuration : MonoBehaviour
         OnPixelSnap?.Invoke(pixelSnap.isOn);
     }
 
-    public void TestAvatars()
+    public void Show()
     {
-        OnAvatarsTest?.Invoke(testAvatars.isOn);
+        OnShowTest?.Invoke(show.isOn);
     }
 
     public void SetAvatarsSpeed()
@@ -48,7 +67,7 @@ public class Configuration : MonoBehaviour
     public void SetWorldSize()
     {
         worldSize = worldSizeSlider.value * MaxWorldSize;
-        OnWorldSizeChanged?.Invoke((int)worldSize);
+        OnWorldSizeChanged?.Invoke(worldSize);
         ChangeAvatarAreaHorizontalSize();
         ChangeAvatarAreaVerticalSize();
     }
@@ -64,4 +83,46 @@ public class Configuration : MonoBehaviour
         var sizeY = Launcher.Instance.WorldSize.y * avatarAreaVerticalSlider.value;
         OnAvatarAreaVerticalChanged?.Invoke(sizeY);
     }
+
+    public AppSettings GetSettings()
+    {
+        var settings = new AppSettings
+        {
+            avatarAreaHeight = avatarAreaVerticalSlider.value,
+            avatarAreaWidth = avatarAreaHorizontalSlider.value,
+            worldSize = worldSize,
+            avatarsSpeed = avatarSpeedSlider.value,
+            randomSpeedEnabled = randomSpeed.isOn,
+            pixelSnapping = pixelSnap.isOn,
+            chromakeyId = chromakey.value,
+            imageScale = imageScaleSlider.value,
+        };
+        return settings;
+    }
+
+    public void SetSettings(AppSettings settings)
+    {
+        avatarAreaVerticalSlider.value = settings.avatarAreaHeight;
+        avatarAreaHorizontalSlider.value = settings.avatarAreaWidth;
+        worldSize = settings.worldSize;
+        avatarSpeedSlider.value = settings.avatarsSpeed;
+        randomSpeed.isOn = settings.randomSpeedEnabled;
+        pixelSnap.isOn = settings.pixelSnapping;
+        chromakey.value = settings.chromakeyId;
+        imageScaleSlider.value = settings.imageScale;
+        
+        worldSizeSlider.value = 1.0f / MaxWorldSize * worldSize;
+        
+        SetWorldSize();
+        
+        // Launcher.Instance.ChangeWorldSize(1.0f / MaxWorldSize * settings.worldSize);
+        // Launcher.Instance.ChangePixelSnap(settings.pixelSnapping);
+        //
+        // ChangeAvatarAreaHorizontalSize();
+        // ChangeAvatarAreaVerticalSize();
+        
+        
+        
+    }
+    
 }

@@ -1,5 +1,8 @@
+using Data;
+using Newtonsoft.Json;
 using Twitch;
 using UI;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -8,14 +11,18 @@ public class Launcher : MonoBehaviour
     [SerializeField] PixelPerfectCamera pixelPerfectCamera;
     [SerializeField] ConnectPanel connectPanel;
     [SerializeField] public Configuration config;
-    [Header("Configs")]
-    [SerializeField] GameObject avatarsConfig;
+    [SerializeField] GameObject menu;
+    [SerializeField] GameObject avatarArea;
     Connect m_connect;
 
     Camera m_camera;
 
     Vector2Int m_windowSize;
     Vector2 m_worldSize;
+
+    Color m_baseColor;
+
+    const string ConfigKey = "ConfigKey";
 
     public static Launcher Instance { get; private set; }
 
@@ -27,6 +34,7 @@ public class Launcher : MonoBehaviour
     void Awake()
     {
         m_camera = pixelPerfectCamera.GetComponent<Camera>();
+        m_baseColor = m_camera.backgroundColor;
         if (Instance != null && Instance != this)
         {
             Destroy(this);
@@ -43,7 +51,6 @@ public class Launcher : MonoBehaviour
         Configuration.OnWorldSizeChanged += ChangeWorldSize;
         Configuration.OnPixelSnap += ChangePixelSnap;
     }
-    
 
 
     async void Start()
@@ -54,7 +61,6 @@ public class Launcher : MonoBehaviour
         m_connect = new Connect(connectPanel);
         await m_connect.AutoConnectTwitch();
         Application.targetFrameRate = 60;
-        Application.runInBackground = true;
     }
 
 
@@ -88,8 +94,11 @@ public class Launcher : MonoBehaviour
         Configuration.OnWorldSizeChanged -= ChangeWorldSize;
     }
 
+    
     void OnApplicationQuit()
     {
+        // HideAll();  //  TODO  а оно точно успеет сохранить до уничтожения всякого ?
+        // Debug.Log("Application Quit");
         m_connect.OnApplicationQuit();
     }
 
@@ -121,7 +130,7 @@ public class Launcher : MonoBehaviour
         int refResolutionY = pixelPerfectCamera.refResolutionY;
 
         Debug.Log(refResolutionX + "|" + refResolutionY);
-        
+
         int screenWidth = Screen.width;
         int screenHeight = Screen.height;
 
@@ -137,24 +146,65 @@ public class Launcher : MonoBehaviour
     }
 
 
-    public void ChangeWorldSize(int scale)
+    internal void ChangeWorldSize(float scale)
     {
-        pixelPerfectCamera.assetsPPU = scale;
+        pixelPerfectCamera.assetsPPU = (int)scale;
         m_worldSize = GetScreenSize(pixelPerfectCamera) / pixelPerfectCamera.assetsPPU;
     }
-    
-    void ChangePixelSnap(bool isPixelSnap)
+
+    internal void ChangePixelSnap(bool isPixelSnap)
     {
         pixelPerfectCamera.pixelSnapping = isPixelSnap;
     }
 
-
-    bool m_isAvatarConfigShowing;
-
-    public void ShowAvatarsConfig()
+    void OnApplicationFocus(bool hasFocus)
     {
-        avatarsConfig.SetActive(m_isAvatarConfigShowing);
-        m_isAvatarConfigShowing = !m_isAvatarConfigShowing;
+        if (hasFocus)
+        {
+            ShowAll();
+        }
+        else
+        {
+            HideAll();
+        }
     }
-    public void HideAvatarsConfig() => avatarsConfig.SetActive(false);
+    
+
+    AppSettings HideAll()
+    {
+        menu.SetActive(false);
+        connectPanel.gameObject.SetActive(false);
+        avatarArea.SetActive(false);
+        var settings = config.GetSettings();
+        m_camera.backgroundColor = Utils.GetChromakeyColor(settings.chromakeyId);
+        settings.areaPosX = avatarArea.transform.position.x;
+        settings.areaPosY = avatarArea.transform.position.y;
+        var json = JsonConvert.SerializeObject(settings);
+        PlayerPrefs.SetString(ConfigKey, json);
+
+        Debug.Log($"HIDE: {json}");
+
+        return settings;
+    }
+
+    void ShowAll()
+    {
+        // PlayerPrefs.DeleteKey(ConfigKey);
+        m_camera.backgroundColor = m_baseColor;
+        if (PlayerPrefs.HasKey(ConfigKey))
+        {
+            var json = PlayerPrefs.GetString(ConfigKey);
+            var settings = JsonConvert.DeserializeObject<AppSettings>(json);
+            config.SetSettings(settings);
+            avatarArea.GetComponent<AvatarArea>().RestoreRect(new Vector3(settings.areaPosX, settings.areaPosY, 0.0f));
+            Debug.Log($"SHOW {avatarArea.transform.position}: {json}");
+        }
+        else
+        {
+            var newSettings = HideAll();
+        }
+
+        avatarArea.SetActive(true);
+        menu.SetActive(true);
+    }
 }

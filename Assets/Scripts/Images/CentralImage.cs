@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Data;
@@ -10,9 +11,24 @@ namespace Images
     public class CentralImage : MonoBehaviour
     {
         [SerializeField] Camera pixelCamera;
+        [SerializeField] Sprite testSprite;
         
         Image m_image;
         bool m_isShowed;
+
+
+        void OnEnable()
+        {
+
+            Configuration.OnShowTest += TestShow;
+            Configuration.OnImageScaleChanged += ScaleImage;
+        }
+
+        void OnDisable()
+        {
+            Configuration.OnShowTest -= TestShow;
+            Configuration.OnImageScaleChanged -= ScaleImage;
+        }
 
         void Start()
         {
@@ -27,29 +43,8 @@ namespace Images
             if (sprite is null) return;
             m_isShowed = true;
             m_image.sprite = sprite;
-            // m_image.SetNativeSize();
-            SetImageSize();
+            m_image.SetNativeSize();
             StartCoroutine(ShowImage());
-        }
-
-        void SetImageSize()
-        {
-            RectTransform rt = m_image.GetComponent<RectTransform>();
-
-            // Параметры пиксельной камеры
-            float cameraPPU = 16f; // Pixels Per Unit для пиксельной камеры
-            float worldSize = 128f / cameraPPU; // Размер текстуры в мировых единицах
-
-            // Масштаб экрана
-            float screenScaleX = Screen.width / (2f * pixelCamera.orthographicSize * pixelCamera.aspect);
-            float screenScaleY = Screen.height / (2f * pixelCamera.orthographicSize);
-
-            // Размер изображения в пикселях на канвасе
-            float sizeX = worldSize * screenScaleX;
-            float sizeY = worldSize * screenScaleY;
-
-            // Устанавливаем размер изображения в пикселях
-            rt.sizeDelta = new Vector2(sizeX, sizeY);
         }
 
         Task<Sprite> ParseMessage(string message, ImageData[] imageData)
@@ -75,6 +70,29 @@ namespace Images
             transform.localPosition = Vector3.one * 10000;
             m_isShowed = false;
             yield return null;
+        }
+        
+        
+        
+        void ScaleImage(float scale)
+        {
+            transform.localScale = Vector3.one * scale;
+        }
+        
+        void TestShow(bool isShowed)
+        {
+            if (isShowed)
+            {
+                m_image.sprite = testSprite;
+                m_image.SetNativeSize();
+                transform.localPosition = Vector3.zero;
+            }
+            else
+            {
+                m_image.sprite = null;
+                transform.localPosition = Vector3.one * 10000;
+            }
+            
         }
     }
 }

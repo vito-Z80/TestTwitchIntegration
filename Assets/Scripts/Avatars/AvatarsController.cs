@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Data;
-using gl;
 using Twitch;
 using UI;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.U2D;
+using Random = UnityEngine.Random;
 
 namespace Avatars
 {
@@ -20,7 +20,7 @@ namespace Avatars
         readonly Dictionary<string, Avatar> m_avatars = new(); //  string:userName, Avatar:avatar
         readonly Dictionary<string, UserName> m_names = new(); //  string:userName, Avatar:avatar
 
-        
+
         PixelPerfectCamera m_pixelPerfectCamera;
         Camera m_camera;
         AvatarsStorage m_avatarsStorage;
@@ -29,7 +29,6 @@ namespace Avatars
 
         Sprite[] m_sprites;
 
-        
 
         void Start()
         {
@@ -157,7 +156,7 @@ namespace Avatars
             Screen.SetResolution(m_screenSize.x, m_screenSize.y, FullScreenMode.Windowed);
             return true;
         }
-        
+
         void SetAvatarsRect(Rect rect)
         {
             avatarsArea.position = rect.position;
@@ -166,24 +165,35 @@ namespace Avatars
 
         void OnEnable()
         {
-            Configuration.OnAvatarsTest += TestAvatars;
-            Areas.OnRectSizeChanged += SetAvatarsRect;
+            Configuration.OnShowTest += ShowTestAvatarsTest;
+            Configuration.OnRandomSpeed += SetRandomSpeedEachAvatar;
+            AvatarArea.OnRectSizeChanged += SetAvatarsRect;
         }
+
 
         void OnDisable()
         {
-            Configuration.OnAvatarsTest -= TestAvatars;
-            Areas.OnRectSizeChanged -= SetAvatarsRect;
+            Configuration.OnShowTest -= ShowTestAvatarsTest;
+            AvatarArea.OnRectSizeChanged -= SetAvatarsRect;
         }
 
-        void TestAvatars(bool isTest)
+        void SetRandomSpeedEachAvatar(bool isRandom)
+        {
+            foreach (var avatar in m_avatars.Values)
+            {
+                var randomSpeed = isRandom ? Random.Range(0.5f, 3.0f) : 1.0f;
+                avatar.randomSpeed = randomSpeed;
+            }
+        }
+
+        void ShowTestAvatarsTest(bool isTest)
         {
             if (isTest)
             {
                 for (var i = 0; i < 20; i++)
                 {
                     StartAvatar($"testName_{i}", "toad");
-                }    
+                }
             }
             else
             {
@@ -198,10 +208,10 @@ namespace Avatars
                 {
                     Destroy(value.gameObject);
                 }
+
                 m_avatars.Clear();
                 m_names.Clear();
             }
-            
         }
 
         void OnDestroy()

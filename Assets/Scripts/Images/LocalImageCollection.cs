@@ -78,7 +78,7 @@ namespace Images
         Sprite GetSprite(Texture2D texture)
         {
             var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f),
-                16.0f, 0, SpriteMeshType.FullRect);
+                100.0f, 0, SpriteMeshType.FullRect);
             return sprite;
         }
     }
