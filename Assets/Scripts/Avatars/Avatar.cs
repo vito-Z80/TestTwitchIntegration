@@ -339,7 +339,7 @@ namespace Avatars
 
         void DestroyAvatar()
         {
-            Debug.Log($"TODO: Destroyed avatar: {avatarName}");
+            Log.LogMessage($"TODO: Destroyed avatar: {avatarName}");
         }
 
 

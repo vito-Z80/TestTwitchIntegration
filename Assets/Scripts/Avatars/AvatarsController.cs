@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Data;
 using Twitch;
 using UI;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.U2D;
 using Random = UnityEngine.Random;
 
@@ -37,11 +35,6 @@ namespace Avatars
             m_avatarsStorage = new AvatarsStorage();
             m_avatarsStorage.Init();
             m_sprites = m_avatarsStorage.GetSprites();
-            // avatarsArea = Rect.zero;
-            var size = GetOffScreenSize() / m_pixelPerfectCamera.assetsPPU;
-            var position = new Vector2(m_pixelPerfectCamera.transform.position.x - size.x / 2, m_pixelPerfectCamera.transform.position.y - size.y / 2);
-            // avatarsArea.position = position;
-            // avatarsArea.size = size;
             TwitchChatController.OnAvatarStarted += StartAvatar;
             TwitchChatController.OnAvatarPursuit += PursuitAvatar;
         }
@@ -64,24 +57,7 @@ namespace Avatars
                 }
             }
         }
-
-
-        void Update()
-        {
-            ResizeArea();
-        }
-
-        void ResizeArea()
-        {
-            if (WasWindowResized())
-            {
-                var size = GetOffScreenSize() / m_pixelPerfectCamera.assetsPPU;
-                var position = new Vector2(m_pixelPerfectCamera.transform.position.x - size.x / 2, m_pixelPerfectCamera.transform.position.y - size.y / 2);
-                // avatarsArea.position = position;
-                // avatarsArea.size = size;
-            }
-        }
-
+        
 
         void StartAvatar(string userName, string avatarName)
         {

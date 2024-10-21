@@ -31,32 +31,41 @@ namespace Twitch
         {
             // Создаем WebSocket-соединение с Twitch IRC сервером.
             m_websocket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
-
-            m_websocket.OnOpen += () =>
-            {
-                Authenticate();
-                Log.LogMessage("Подключился к чату.");
-                OnConnectPanelVisible?.Invoke(false);
-            };
-
-            m_websocket.OnMessage += async (bytes) =>
-            {
-                var message = Encoding.UTF8.GetString(bytes);
-                // Log.LogMessage("Получено сообщение: " + message);
-                // Обработка сообщения чата.
-                if (message.Contains(PrivateMessage))
-                {
-                    Log.LogMessage($"Сообщение из чата: {message}");
-                    await m_twitchChatController.ProcessMessage(message.ToLower());
-                }
-            };
-            
-            m_websocket.OnError += (e) => { Debug.LogError("Ошибка WebSocket: " + e); Log.LogMessage("Ошибка WebSocket: " + e);};
-            m_websocket.OnClose += (e) => { Log.LogMessage("Соединение закрыто: " + e); };
-            
+            m_websocket.OnOpen += OpenChat;
+            m_websocket.OnMessage += GetChatMessage;
+            m_websocket.OnError += ChatError;
+            m_websocket.OnClose += ChatClosed;
             await m_websocket.Connect();
         }
-        
+
+        void ChatClosed(WebSocketCloseCode closeCode)
+        {
+            
+            Log.LogMessage("Соединение закрыто: " + closeCode);
+        }
+
+        void ChatError(string errorMsg)
+        {
+            Log.LogMessage("Ошибка WebSocket: " + errorMsg);
+        }
+
+        void OpenChat()
+        {
+            Authenticate();
+            Log.LogMessage("Подключился к чату.");
+            OnConnectPanelVisible?.Invoke(false);
+        }
+
+        async void GetChatMessage(byte[] bytes)
+        {
+            var message = Encoding.UTF8.GetString(bytes);
+            if (message.Contains(PrivateMessage))
+            {
+                Log.LogMessage($"Сообщение из чата: {message}");
+                await m_twitchChatController.ProcessMessage(message.ToLower());
+            }
+        }
+
 
         private void Authenticate()
         {
@@ -87,6 +96,10 @@ namespace Twitch
             if (m_websocket != null)
             {
                 await m_websocket.Close();
+                m_websocket.OnClose -= ChatClosed;
+                m_websocket.OnError -= ChatError;
+                m_websocket.OnMessage -= GetChatMessage;
+                m_websocket.OnOpen -= OpenChat;
             }
         }
     }

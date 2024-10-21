@@ -31,19 +31,11 @@ public class Configuration : MonoBehaviour
     public static event Action<bool> OnPixelSnap;
     public static event Action<bool> OnRandomSpeed;
     public static event Action<float> OnImageScaleChanged;
-
-    void Awake()
-    {
-        // worldSizeSlider.value = 1.0f / MaxWorldSize * worldSize;
-        // avatarSpeedSlider.value = 1.0f / MaxAvatarSpeed * avatarsSpeed;
-    }
-
-
     public void SetImageScale()
     {
         OnImageScaleChanged?.Invoke(imageScaleSlider.value);
     }
-    
+
     public void SetRandomSpeed()
     {
         OnRandomSpeed?.Invoke(randomSpeed.isOn);
@@ -110,19 +102,8 @@ public class Configuration : MonoBehaviour
         pixelSnap.isOn = settings.pixelSnapping;
         chromakey.value = settings.chromakeyId;
         imageScaleSlider.value = settings.imageScale;
-        
+
         worldSizeSlider.value = 1.0f / MaxWorldSize * worldSize;
-        
         SetWorldSize();
-        
-        // Launcher.Instance.ChangeWorldSize(1.0f / MaxWorldSize * settings.worldSize);
-        // Launcher.Instance.ChangePixelSnap(settings.pixelSnapping);
-        //
-        // ChangeAvatarAreaHorizontalSize();
-        // ChangeAvatarAreaVerticalSize();
-        
-        
-        
     }
-    
 }

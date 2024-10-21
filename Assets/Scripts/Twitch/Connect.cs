@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UI;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Twitch
 {
@@ -34,8 +35,12 @@ namespace Twitch
             m_fieldsData = LoadFieldsData();
             m_oauth.TokenData = LoadTokenData();
 
-            if (m_fieldsData == null && m_oauth.TokenData == null) return;
-
+            if (m_fieldsData == null && m_oauth.TokenData == null)
+            {
+                m_panel.gameObject.SetActive(true);
+                Log.LogMessage("Automatic connection not possible, no data available.");
+                return;
+            }
             Log.LogMessage("Check valid Twitch OAuth Token...");
             if (await m_oauth.IsTokenValid())
             {
@@ -50,7 +55,7 @@ namespace Twitch
                 }
                 else
                 {
-                    Log.LogMessage("Try refresh Token but secret is absent");
+                    Log.LogMessage("Secret is absent");
                     m_panel.gameObject.SetActive(true);
                     m_panel.ConnectPanelRefreshVisible();
                     return;
@@ -132,7 +137,7 @@ namespace Twitch
 
             var json = JsonConvert.SerializeObject(m_fieldsData);
             PlayerPrefs.SetString(FieldKey, json);
-            PlayerPrefs.Save();
+            // PlayerPrefs.Save();
         }
 
         [CanBeNull]

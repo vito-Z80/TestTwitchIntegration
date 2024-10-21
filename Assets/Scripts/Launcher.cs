@@ -2,7 +2,6 @@ using Data;
 using Newtonsoft.Json;
 using Twitch;
 using UI;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -26,7 +25,6 @@ public class Launcher : MonoBehaviour
 
     public static Launcher Instance { get; private set; }
 
-    public Vector2Int WindowSize => m_windowSize;
     public Vector2 WorldSize => m_worldSize;
     public PixelPerfectCamera Ppc => pixelPerfectCamera;
     public Camera Camera => m_camera;
@@ -56,6 +54,8 @@ public class Launcher : MonoBehaviour
     async void Start()
     {
         // PlayerPrefs.DeleteAll();
+        Log.LogMessage($"Starting Twitch Chat Client: {GetHashCode()}");
+        m_camera.backgroundColor = m_baseColor;
         connectPanel.gameObject.SetActive(false);
         Application.runInBackground = true;
         m_connect = new Connect(connectPanel);
@@ -92,31 +92,26 @@ public class Launcher : MonoBehaviour
     {
         TwitchChatClient.OnConnectPanelVisible -= ConnectPanelVisible;
         Configuration.OnWorldSizeChanged -= ChangeWorldSize;
+        Configuration.OnPixelSnap -= ChangePixelSnap;
     }
 
     
     void OnApplicationQuit()
     {
-        // HideAll();  //  TODO  а оно точно успеет сохранить до уничтожения всякого ?
-        // Debug.Log("Application Quit");
         m_connect.OnApplicationQuit();
     }
 
     void CorrectRuntimeSizeWindowSize()
     {
         if (!WasWindowResized()) return;
-        // if (!Input.GetMouseButtonUp(0)) return;
         m_windowSize.x = Screen.width / 2 * 2;
         m_windowSize.y = Screen.height / 2 * 2;
         var windowPosition = Screen.mainWindowPosition;
-        // Screen.SetResolution(m_windowSize.x, m_windowSize.y, FullScreenMode.Windowed);
         var displayInfo = Screen.mainWindowDisplayInfo;
         displayInfo.width = m_windowSize.x;
         displayInfo.height = m_windowSize.y;
         Screen.MoveMainWindowTo(displayInfo, windowPosition);
         m_worldSize = GetScreenSize(pixelPerfectCamera) / pixelPerfectCamera.assetsPPU;
-        Debug.Log(Screen.width + "|" + Screen.height);
-        Debug.Log(m_worldSize);
     }
 
     public bool WasWindowResized()
@@ -129,7 +124,7 @@ public class Launcher : MonoBehaviour
         int refResolutionX = pixelPerfectCamera.refResolutionX;
         int refResolutionY = pixelPerfectCamera.refResolutionY;
 
-        Debug.Log(refResolutionX + "|" + refResolutionY);
+        // Log.LogMessage(refResolutionX + "|" + refResolutionY);   TODO через кадр другие размеры, не то что бы на 1 а раза в 3.
 
         int screenWidth = Screen.width;
         int screenHeight = Screen.height;
@@ -173,7 +168,6 @@ public class Launcher : MonoBehaviour
     AppSettings HideAll()
     {
         menu.SetActive(false);
-        connectPanel.gameObject.SetActive(false);
         avatarArea.SetActive(false);
         var settings = config.GetSettings();
         m_camera.backgroundColor = Utils.GetChromakeyColor(settings.chromakeyId);
@@ -181,15 +175,14 @@ public class Launcher : MonoBehaviour
         settings.areaPosY = avatarArea.transform.position.y;
         var json = JsonConvert.SerializeObject(settings);
         PlayerPrefs.SetString(ConfigKey, json);
-
-        Debug.Log($"HIDE: {json}");
-
+        PlayerPrefs.Save();
+        // Log.LogMessage($"HIDE: {json}");
+        Log.SaveLog();
         return settings;
     }
 
     void ShowAll()
     {
-        // PlayerPrefs.DeleteKey(ConfigKey);
         m_camera.backgroundColor = m_baseColor;
         if (PlayerPrefs.HasKey(ConfigKey))
         {
@@ -197,11 +190,11 @@ public class Launcher : MonoBehaviour
             var settings = JsonConvert.DeserializeObject<AppSettings>(json);
             config.SetSettings(settings);
             avatarArea.GetComponent<AvatarArea>().RestoreRect(new Vector3(settings.areaPosX, settings.areaPosY, 0.0f));
-            Debug.Log($"SHOW {avatarArea.transform.position}: {json}");
+            // Log.LogMessage($"SHOW {avatarArea.transform.position}: {json}");
         }
         else
         {
-            var newSettings = HideAll();
+            HideAll();
         }
 
         avatarArea.SetActive(true);

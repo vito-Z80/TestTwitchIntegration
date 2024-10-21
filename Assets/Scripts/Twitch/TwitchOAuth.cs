@@ -57,7 +57,6 @@ namespace Twitch
                 }
                 else
                 {
-                    Debug.LogError("Ошибка получения токена: " + www.error);
                     Log.LogMessage("Ошибка получения токена: " + www.error);
                 }
             }
@@ -101,7 +100,7 @@ namespace Twitch
             TokenData = JsonConvert.DeserializeObject<TokenData>(jsonResponse);
 
             PlayerPrefs.SetString(TokenDataKey, jsonResponse);
-            PlayerPrefs.Save();
+            // PlayerPrefs.Save();
 
             Log.LogMessage("Токены сохранены.");
         }
@@ -111,6 +110,7 @@ namespace Twitch
             var url = "https://id.twitch.tv/oauth2/validate";
             using (UnityWebRequest www = UnityWebRequest.Get(url))
             {
+                Log.LogMessage($"Tile left: {TokenData.expires_in}");
                 www.SetRequestHeader("Authorization", "OAuth " + TokenData.access_token);
                 await www.SendWebRequest();
 
@@ -124,7 +124,8 @@ namespace Twitch
 
                     return true;
                 }
-                else if (www.responseCode == 401)
+                Log.LogMessage($"Response code: {www.responseCode}");
+                if (www.responseCode == 401)
                 {
                     Log.LogMessage("Токен истек или недействителен.");
                     foreach (var header in www.GetResponseHeaders())
@@ -134,17 +135,13 @@ namespace Twitch
 
                     return false;
                 }
-                else
+                Log.LogMessage("Ошибка проверки токена: " + www.error);
+                foreach (var header in www.GetResponseHeaders())
                 {
-                    Debug.LogError("Ошибка проверки токена: " + www.error);
-                    Log.LogMessage("Ошибка проверки токена: " + www.error);
-                    foreach (var header in www.GetResponseHeaders())
-                    {
-                        Log.LogMessage($"{header.Key}: {header.Value}");
-                    }
-
-                    return false;
+                    Log.LogMessage($"{header.Key}: {header.Value}");
                 }
+
+                return false;
             }
         }
 
@@ -169,7 +166,6 @@ namespace Twitch
                 }
                 else
                 {
-                    Debug.LogError("Ошибка обновления токена: " + www.error);
                     Log.LogMessage("Ошибка обновления токена: " + www.error);
                 }
             }

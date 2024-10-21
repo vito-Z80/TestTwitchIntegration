@@ -26,7 +26,7 @@ namespace Avatars
 
             if (m_uvRects.Length != textures.Count)
             {
-                Debug.LogError("The number of uv textures does not match the number of pixels of the atlas");
+                Log.LogMessage("The number of uv textures does not match the number of pixels of the atlas");
             }
 
             m_sprites = new Sprite[textures.Count];

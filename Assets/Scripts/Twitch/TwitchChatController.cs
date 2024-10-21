@@ -31,11 +31,7 @@ namespace Twitch
             if (userName != null)
             {
                 SendMessage(message);
-
-
                 await AttackUser(userName, message);
-
-
                 await StartAvatar(userName, message);
                 await SayHello(userName, message);
             }
