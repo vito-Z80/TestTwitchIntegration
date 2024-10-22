@@ -22,9 +22,8 @@ namespace Avatars
         PixelPerfectCamera m_pixelPerfectCamera;
         Camera m_camera;
         AvatarsStorage m_avatarsStorage;
-        Vector2Int m_screenSize;
         public Rect avatarsArea;
-
+        public Rect fullArea;
         Sprite[] m_sprites;
 
 
@@ -37,6 +36,13 @@ namespace Avatars
             m_sprites = m_avatarsStorage.GetSprites();
             TwitchChatController.OnAvatarStarted += StartAvatar;
             TwitchChatController.OnAvatarPursuit += PursuitAvatar;
+        }
+
+        void Update()
+        {
+            var worldSize = Launcher.Instance.WorldSize;
+            fullArea.position = (Vector2)m_pixelPerfectCamera.transform.position - worldSize * 0.5f;
+            fullArea.size = worldSize;
         }
 
         public Sprite GetSprite(int id) => m_sprites[id];
@@ -103,34 +109,6 @@ namespace Avatars
             var un = Instantiate(userNamePrefab, avatarPosition, Quaternion.identity, canvas.transform).GetComponent<UserName>();
             un.SetTargetAvatar(hisAvatar, canvas, m_camera, userName);
             m_names[userName] = un;
-        }
-
-        Vector2 GetOffScreenSize()
-        {
-            int refResolutionX = m_pixelPerfectCamera.refResolutionX;
-            int refResolutionY = m_pixelPerfectCamera.refResolutionY;
-
-            int screenWidth = Screen.width;
-            int screenHeight = Screen.height;
-
-            // zoom level (PPU scale)
-            int verticalZoom = screenHeight / refResolutionY;
-            int horizontalZoom = screenWidth / refResolutionX;
-            var zoom = Math.Max(1, Math.Min(verticalZoom, horizontalZoom));
-
-            var offscreenRTWidth = screenWidth / zoom / 2 * 2;
-            var offscreenRTHeight = screenHeight / zoom / 2 * 2;
-
-            return new Vector2(offscreenRTWidth, offscreenRTHeight);
-        }
-
-        bool WasWindowResized()
-        {
-            if (Screen.width == m_screenSize.x && Screen.height == m_screenSize.y) return false;
-            m_screenSize.x = Screen.width / 2 * 2;
-            m_screenSize.y = Screen.height / 2 * 2;
-            Screen.SetResolution(m_screenSize.x, m_screenSize.y, FullScreenMode.Windowed);
-            return true;
         }
 
         void SetAvatarsRect(Rect rect)

@@ -23,7 +23,6 @@ namespace Avatars
         float m_angle;
         float m_leaveTime; //  время до уничтожения аватара
         float m_frameTime; //  время кадра анимации
-        public float m_stateTime; //  время состояния анимации одного направления
         float m_idleTime; //  время idle анимации
         float m_flyCurrentSpeed; // Текущая скорость атакованной цели
 
@@ -45,11 +44,13 @@ namespace Avatars
         public AvatarState m_currentState;
         readonly AvatarState[] m_randomStates = { AvatarState.Idle, AvatarState.Left, AvatarState.Right };
         Rect m_area;
+        Rect m_fullArea;
 
         AvatarsController m_avatarsController;
 
         Vector3 m_randomTargetDirection;
         Vector3 m_flyDirection; // Направление движения атакованной цели
+        Vector3 m_lastPosition;
         public AreaOffset areaOffset;
 
         AvatarMove m_avatarMovement;
@@ -60,7 +61,6 @@ namespace Avatars
             m_iFree = false;
             m_spriteRenderer = gameObject.GetComponentInChildren<SpriteRenderer>();
             m_spriteRenderer.sharedMaterial = shadeMaterial;
-            SetIdleTime();
             m_isAttackPermitted = true;
             m_isPursue = false;
         }
@@ -83,8 +83,8 @@ namespace Avatars
             this.avatarName = avatarName;
             m_pixelPerfectCamera = pixelPerfectCamera;
             m_area = avatarsController.avatarsArea;
+            m_fullArea = avatarsController.fullArea;
             m_leaveTime = 5.0f * 30.0f;
-            m_stateTime = GetRandomStateTime();
 
             if (avatarIndices.ContainsKey(AvatarState.Idle))
             {
@@ -100,7 +100,7 @@ namespace Avatars
 
         void Update()
         {
-            m_area = m_avatarsController.avatarsArea;
+            // m_area = m_avatarsController.avatarsArea;
             SetAreaVerticalOffset();
 
             var deltaTime = Time.deltaTime * Launcher.Instance.config.avatarsSpeed * randomSpeed;
@@ -116,9 +116,12 @@ namespace Avatars
             {
                 if (m_currentState != AvatarState.AttackRight && m_currentState != AvatarState.AttackLeft)
                 {
-                    SetState();
-                    AvatarAnimation();
-                    if (!m_isPursue) Move(deltaTime);
+                    if (!m_isPursue)
+                    {
+                        Move(deltaTime);
+                        SetState();
+                        PlayAnimation();
+                    }
                 }
             }
 
@@ -131,6 +134,8 @@ namespace Avatars
                     m_gotHit = false;
                 }
             }
+
+            m_lastPosition = transform.position;
         }
 
         void SetAreaVerticalOffset()
@@ -164,25 +169,25 @@ namespace Avatars
             {
                 transform.position += m_flyDirection * (m_flyCurrentSpeed * deltaTime);
 
-                if (transform.position.x < m_area.xMin)
+                if (transform.position.x < m_fullArea.xMin)
                 {
-                    transform.position = new Vector3(m_area.xMin, transform.position.y, transform.position.z);
+                    transform.position = new Vector3(m_fullArea.xMin, transform.position.y, transform.position.z);
                     m_flyDirection.x = Mathf.Abs(m_flyDirection.x);
                 }
-                else if (transform.position.x > m_area.xMax)
+                else if (transform.position.x > m_fullArea.xMax)
                 {
-                    transform.position = new Vector3(m_area.xMax, transform.position.y, transform.position.z);
+                    transform.position = new Vector3(m_fullArea.xMax, transform.position.y, transform.position.z);
                     m_flyDirection.x = -Mathf.Abs(m_flyDirection.x);
                 }
 
-                if (transform.position.y < m_area.yMin + areaOffset.Bottom)
+                if (transform.position.y < m_fullArea.yMin + areaOffset.Bottom)
                 {
-                    transform.position = new Vector3(transform.position.x, m_area.yMin + areaOffset.Bottom, transform.position.z);
+                    transform.position = new Vector3(transform.position.x, m_fullArea.yMin + areaOffset.Bottom, transform.position.z);
                     m_flyDirection.y = Mathf.Abs(m_flyDirection.y);
                 }
-                else if (transform.position.y > m_area.yMax + areaOffset.Top)
+                else if (transform.position.y > m_fullArea.yMax + areaOffset.Top)
                 {
-                    transform.position = new Vector3(transform.position.x, m_area.yMax + areaOffset.Top, transform.position.z);
+                    transform.position = new Vector3(transform.position.x, m_fullArea.yMax + areaOffset.Top, transform.position.z);
                     m_flyDirection.y = -Mathf.Abs(m_flyDirection.y);
                 }
 
@@ -197,17 +202,7 @@ namespace Avatars
 
         void Move(float deltaTime)
         {
-            // switch (m_avatarMovement)
-            // {
-            //     case AvatarMove.Oval:
-            //         OvalMovement(deltaTime);
-            //         break;
-            //     case AvatarMove.Random:
             RandomMovement(deltaTime);
-            //         break;
-            //     default:
-            //         throw new ArgumentOutOfRangeException();
-            // }
         }
 
 
@@ -227,101 +222,58 @@ namespace Avatars
         void RandomMovement(float deltaTime)
         {
             m_idleTime -= deltaTime;
-            if (m_avatars.ContainsKey(AvatarState.Idle))
-            {
-                if (m_idleTime < 0.0f && m_idleTime > -6.0f)
-                {
-                    if (Random.value < 0.93f)
-                    {
-                        return;
-                    }
-
-                    m_randomTargetDirection = transform.position;
-                }
-                else if (m_idleTime <= -6.0f)
-                {
-                    SetIdleTime();
-                }
-            }
+            if (m_idleTime > 0.0f) return;
 
             transform.position = Vector3.MoveTowards(transform.position, m_randomTargetDirection, deltaTime);
             if (Mathf.Abs(transform.position.x - m_randomTargetDirection.x) < 0.00625f)
             {
-                m_randomTargetDirection.x = Random.Range(m_area.min.x, m_area.max.x);
+                if (m_avatars.ContainsKey(AvatarState.Idle) && Random.value > 0.75f)
+                {
+                    m_randomTargetDirection = transform.position;
+                    m_idleTime = Random.Range(1.5f, 5.0f);
+                }
+                else
+                {
+                    m_randomTargetDirection.x = Random.Range(m_area.min.x, m_area.max.x);
+                }
+
+                m_currentFrame = 0;
             }
 
             if (Mathf.Abs(transform.position.y - m_randomTargetDirection.y) < 0.00625f)
             {
                 m_randomTargetDirection.y = Random.Range(m_area.min.y + areaOffset.Bottom, m_area.max.y + areaOffset.Top);
             }
-
-            m_currentState = transform.position.x > m_randomTargetDirection.x ? AvatarState.Left : AvatarState.Right;
-        }
-
-        void SetIdleTime()
-        {
-            m_idleTime = Random.Range(3, 10);
-        }
-
-
-        bool IsStateTimeOver()
-        {
-            m_stateTime -= Time.deltaTime;
-            if (m_stateTime < 0.0f)
-            {
-                m_stateTime = GetRandomStateTime();
-                return true;
-            }
-
-            return false;
         }
 
 
         void SetState()
         {
-            var lastState = m_currentState;
-            if (IsStateTimeOver())
+            if (transform.position.x > m_lastPosition.x)
             {
-                m_currentState = GetRandomState();
-                if (m_currentState != lastState)
-                {
-                    m_currentFrame = 0;
-                    m_frameTime = 0.0f;
-                }
+                m_currentState = AvatarState.Right;
             }
-        }
-
-        void AvatarAnimation()
-        {
-            if (!m_avatars.ContainsKey(m_currentState))
+            else if (transform.position.x < m_lastPosition.x)
             {
-                m_currentState = GetRandomState();
-                return;
+                m_currentState = AvatarState.Left;
             }
-
-            if (!IsPlayingAnimation())
+            else
             {
                 m_currentState = AvatarState.Idle;
-                m_frameTime = 0.0f;
-                m_currentFrame = 0;
-                IsPlayingAnimation();
             }
         }
 
-        bool IsPlayingAnimation()
+
+        bool PlayAnimationOnce()
         {
             if (m_frameTime > 1.0f / 8.0f)
             {
-                m_currentFrame++;
-
-                if (m_currentFrame == m_avatars[m_currentState].Length)
+                if (m_currentFrame + 1 == m_avatars[m_currentState].Length)
                 {
-                    m_currentFrame = 0;
-                    m_frameTime = 0.0f;
                     return false;
                 }
-
                 m_frameTime = 0.0f;
+                m_currentFrame++;
                 var frameId = m_avatars[m_currentState][m_currentFrame];
                 var sprite = m_avatarsController.GetSprite(frameId);
                 m_spriteRenderer.sprite = sprite;
@@ -330,16 +282,27 @@ namespace Avatars
             m_frameTime += Time.deltaTime * 1.45f;
             return true;
         }
-
-        AvatarState GetRandomState()
+      
+        
+        void PlayAnimation()
         {
-            var randomIndex = Random.Range(0, m_randomStates.Length);
-            return m_randomStates[randomIndex];
-        }
+            if (m_frameTime > 1.0f / 8.0f)
+            {
+                m_frameTime = 0.0f;
+                m_currentFrame++;
+                if (m_currentFrame == m_avatars[m_currentState].Length)
+                {
+                    m_currentFrame = 0;
+                    // m_spriteRenderer.sprite = m_avatarsController.GetSprite(m_avatars[m_currentState][m_currentFrame]);
+                    // return;
+                }
 
-        float GetRandomStateTime()
-        {
-            return Random.Range(3.0f, 8.0f);
+                var frameId = m_avatars[m_currentState][m_currentFrame];
+                var sprite = m_avatarsController.GetSprite(frameId);
+                m_spriteRenderer.sprite = sprite;
+            }
+
+            m_frameTime += Time.deltaTime * 1.45f;
         }
 
         void DestroyAvatar()
@@ -363,12 +326,12 @@ namespace Avatars
                     yield break;
                 }
 
-                ;
                 distance = Vector3.Distance(transform.position, m_targetAvatar.transform.position);
                 var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime * 2.0f;
                 direction = (m_targetAvatar.transform.position - transform.position).normalized;
                 transform.position += direction * deltaTime;
                 m_currentState = direction.x <= 0.0f ? AvatarState.Left : AvatarState.Right;
+                PlayAnimation();
                 yield return null;
             }
 
@@ -376,10 +339,11 @@ namespace Avatars
             //  цель должна остановиться когда ее настигли.
             m_targetAvatar.WasAttacked();
             //  анимации атаки.
+            var lastState = m_currentState;
             m_currentState = m_currentState == AvatarState.Left ? AvatarState.AttackLeft : AvatarState.AttackRight;
             m_frameTime = 0.0f;
             m_currentFrame = 0;
-            while (IsPlayingAnimation())
+            while (PlayAnimationOnce())
             {
                 yield return null;
             }
@@ -389,8 +353,7 @@ namespace Avatars
             //  последний кадр кулака показать 1 сек.
             yield return new WaitForSeconds(1.0f);
             // движемся дальше по своим делам.
-            m_currentState = GetRandomState();
-            m_stateTime = GetRandomStateTime();
+            m_currentState = lastState;
             m_isAttackPermitted = true;
             m_isPursue = false;
             yield return null;
