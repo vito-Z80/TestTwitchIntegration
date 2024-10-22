@@ -13,7 +13,7 @@ namespace Avatars
         Texture2D m_atlasTexture;
         Sprite[] m_sprites;
 
-        public void GenerateAtlas(List<Texture2D> textures, Dictionary<string, Dictionary<AvatarState, int[]>> avatars)
+        public void GenerateAtlas(List<Texture2D> textures)
         {
             m_atlasTexture = new Texture2D(AtlasWidth, AtlasHeight, TextureFormat.RGBA32, false, false)
             {

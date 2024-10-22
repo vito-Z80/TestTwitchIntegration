@@ -37,6 +37,17 @@ namespace Twitch
             m_websocket.OnClose += ChatClosed;
             await m_websocket.Connect();
         }
+        
+        //  вебсокет считает соединение не активным через некоторое время, нужно отправлять ему сообщение, что бы избежать отключения. 
+        private async Task SendPing()
+        {
+            while (m_websocket != null && m_websocket.State == WebSocketState.Open)
+            {
+                SendCommand("PING :tmi.twitch.tv");
+                Log.LogMessage("Отправлен PING");
+                await Task.Delay(550000); 
+            }
+        }
 
         void ChatClosed(WebSocketCloseCode closeCode)
         {
@@ -54,6 +65,7 @@ namespace Twitch
             Authenticate();
             Log.LogMessage("Подключился к чату.");
             OnConnectPanelVisible?.Invoke(false);
+            _ = SendPing();
         }
 
         async void GetChatMessage(byte[] bytes)

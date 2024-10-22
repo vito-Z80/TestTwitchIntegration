@@ -18,12 +18,12 @@ namespace Avatars
         Dictionary<AvatarState, int[]> m_avatars = new();
         SpriteRenderer m_spriteRenderer;
 
-        int m_currentFrame; //  текущий кадр анимации
+        public int m_currentFrame; //  текущий кадр анимации
 
         float m_angle;
         float m_leaveTime; //  время до уничтожения аватара
         float m_frameTime; //  время кадра анимации
-        float m_stateTime; //  время состояния анимации одного направления
+        public float m_stateTime; //  время состояния анимации одного направления
         float m_idleTime; //  время idle анимации
         float m_flyCurrentSpeed; // Текущая скорость атакованной цели
 
@@ -42,8 +42,8 @@ namespace Avatars
 
         Avatar m_targetAvatar;
 
-        AvatarState m_currentState;
-        AvatarState[] m_randomStates;
+        public AvatarState m_currentState;
+        readonly AvatarState[] m_randomStates = { AvatarState.Idle, AvatarState.Left, AvatarState.Right };
         Rect m_area;
 
         AvatarsController m_avatarsController;
@@ -75,9 +75,8 @@ namespace Avatars
 
         public void Init(PixelPerfectCamera pixelPerfectCamera, string avatarName, AvatarsController avatarsController, Dictionary<AvatarState, int[]> avatarIndices)
         {
-
             randomSpeed = 1.0f;
-            
+
             m_iFree = false;
             m_avatars = avatarIndices;
             m_avatarsController = avatarsController;
@@ -287,6 +286,7 @@ namespace Avatars
                 if (m_currentState != lastState)
                 {
                     m_currentFrame = 0;
+                    m_frameTime = 0.0f;
                 }
             }
         }
@@ -314,11 +314,17 @@ namespace Avatars
             {
                 m_currentFrame++;
 
-                if (m_currentFrame >= m_avatars[m_currentState].Length) return false;
-                var renderId = m_avatars[m_currentState][m_currentFrame];
-                var sprite = m_avatarsController.GetSprite(renderId);
-                m_spriteRenderer.sprite = sprite;
+                if (m_currentFrame == m_avatars[m_currentState].Length)
+                {
+                    m_currentFrame = 0;
+                    m_frameTime = 0.0f;
+                    return false;
+                }
+
                 m_frameTime = 0.0f;
+                var frameId = m_avatars[m_currentState][m_currentFrame];
+                var sprite = m_avatarsController.GetSprite(frameId);
+                m_spriteRenderer.sprite = sprite;
             }
 
             m_frameTime += Time.deltaTime * 1.45f;
@@ -327,7 +333,6 @@ namespace Avatars
 
         AvatarState GetRandomState()
         {
-            m_randomStates ??= new[] { AvatarState.Idle, AvatarState.Left, AvatarState.Right };
             var randomIndex = Random.Range(0, m_randomStates.Length);
             return m_randomStates[randomIndex];
         }
@@ -356,7 +361,9 @@ namespace Avatars
                     m_isAttackPermitted = true;
                     m_isPursue = false;
                     yield break;
-                };
+                }
+
+                ;
                 distance = Vector3.Distance(transform.position, m_targetAvatar.transform.position);
                 var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime * 2.0f;
                 direction = (m_targetAvatar.transform.position - transform.position).normalized;
