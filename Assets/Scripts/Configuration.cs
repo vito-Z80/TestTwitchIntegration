@@ -1,109 +1,90 @@
-﻿using System;
-using Data;
-using TMPro;
+﻿using Data;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Configuration : MonoBehaviour
 {
-    [Header("Sliders")] [SerializeField] public Slider avatarSpeedSlider;
-    [SerializeField] public Slider worldSizeSlider;
-    [SerializeField] public Slider avatarAreaHorizontalSlider;
-    [SerializeField] public Slider avatarAreaVerticalSlider;
-    [SerializeField] public Slider imageScaleSlider;
+    public const float MaxAvatarSpeed = 10.0f;
+    public const float MaxCameraPpu = 24.0f;
 
-    [Header("Toggles")] [SerializeField] Toggle show;
-    [SerializeField] Toggle pixelSnap;
-    [SerializeField] public Toggle randomSpeed;
+    AppSettingsData m_settings;
 
-    [Header("Values")] [SerializeField] public float avatarsSpeed;
-    [SerializeField] public float worldSize;
+    [Header("Sliders")] [SerializeField] Slider avatarSpeedSlider;
+    [SerializeField] Slider ppuSizeSlider;
+    [SerializeField] Slider avatarAreaHorizontalSlider;
+    [SerializeField] Slider avatarAreaVerticalSlider;
+    [SerializeField] Slider imageScaleSlider;
 
-    [Header("Dropdown")] [SerializeField] public TMP_Dropdown chromakey;
+    [Header("Toggles")] [SerializeField] Toggle pixelSnap;
+    [SerializeField] Toggle randomSpeed;
 
-    const float MaxAvatarSpeed = 10.0f;
-    public const float MaxWorldSize = 24.0f;
 
-    public static event Action<float> OnWorldSizeChanged;
-    public static event Action<float> OnAvatarAreaHorizontalChanged;
-    public static event Action<float> OnAvatarAreaVerticalChanged;
-    public static event Action<bool> OnShowTest;
-    public static event Action<bool> OnPixelSnap;
-    public static event Action<bool> OnRandomSpeed;
-    public static event Action<float> OnImageScaleChanged;
-    public void SetImageScale()
+    void Start()
     {
-        OnImageScaleChanged?.Invoke(imageScaleSlider.value);
+        m_settings = LocalStorage.GetSettings();
+        Initialize();
     }
 
-    public void SetRandomSpeed()
+
+    void Initialize()
     {
-        OnRandomSpeed?.Invoke(randomSpeed.isOn);
+        avatarSpeedSlider.value = m_settings.avatarsSpeed;
+        ppuSizeSlider.value = m_settings.cameraPpu;
+        avatarAreaHorizontalSlider.value = m_settings.avatarAreaWidth;
+        avatarAreaVerticalSlider.value = m_settings.avatarAreaHeight;
+        imageScaleSlider.value = m_settings.imageScale;
+
+        pixelSnap.isOn = m_settings.pixelSnapping;
+        randomSpeed.isOn = m_settings.randomSpeedEnabled;
     }
 
-    public void PixelSnap()
+    public void FillAvatarAreaHeight()
     {
-        OnPixelSnap?.Invoke(pixelSnap.isOn);
+        m_settings.avatarAreaHeight = 1.0f;
+        avatarAreaVerticalSlider.value = 1.0f;
     }
 
-    public void Show()
+    public void FillAvatarAreaWidth()
     {
-        OnShowTest?.Invoke(show.isOn);
+        m_settings.avatarAreaWidth = 1.0f;
+        avatarAreaHorizontalSlider.value = 1.0f;
     }
 
-    public void SetAvatarsSpeed()
+    public void IsRandomSpeedEnabled(bool value)
     {
-        avatarsSpeed = avatarSpeedSlider.value * MaxAvatarSpeed;
+        m_settings.randomSpeedEnabled = value;
     }
 
-    public void SetWorldSize()
+    public void IsPixelSnappingEnabled(bool value)
     {
-        worldSize = worldSizeSlider.value * MaxWorldSize;
-        OnWorldSizeChanged?.Invoke(worldSize);
-        ChangeAvatarAreaHorizontalSize();
-        ChangeAvatarAreaVerticalSize();
+        m_settings.pixelSnapping = value;
     }
 
-    public void ChangeAvatarAreaHorizontalSize()
+
+    public void SetAvatarsSpeed(float value)
     {
-        var sizeX = Launcher.Instance.WorldSize.x * avatarAreaHorizontalSlider.value;
-        OnAvatarAreaHorizontalChanged?.Invoke(sizeX);
+        m_settings.avatarsSpeed = value /* * MaxAvatarSpeed*/;
     }
 
-    public void ChangeAvatarAreaVerticalSize()
+
+    public void SetImageScale(float value)
     {
-        var sizeY = Launcher.Instance.WorldSize.y * avatarAreaVerticalSlider.value;
-        OnAvatarAreaVerticalChanged?.Invoke(sizeY);
+        m_settings.imageScale = value;
     }
 
-    public AppSettings GetSettings()
+    public void SetPpuSize(float value)
     {
-        var settings = new AppSettings
-        {
-            avatarAreaHeight = avatarAreaVerticalSlider.value,
-            avatarAreaWidth = avatarAreaHorizontalSlider.value,
-            worldSize = worldSize,
-            avatarsSpeed = avatarSpeedSlider.value,
-            randomSpeedEnabled = randomSpeed.isOn,
-            pixelSnapping = pixelSnap.isOn,
-            chromakeyId = chromakey.value,
-            imageScale = imageScaleSlider.value,
-        };
-        return settings;
+        m_settings.cameraPpu = value /* * MaxCameraPpu*/;
     }
 
-    public void SetSettings(AppSettings settings)
+    public void SetAvatarAreaWidth(float value)
     {
-        avatarAreaVerticalSlider.value = settings.avatarAreaHeight;
-        avatarAreaHorizontalSlider.value = settings.avatarAreaWidth;
-        worldSize = settings.worldSize;
-        avatarSpeedSlider.value = settings.avatarsSpeed;
-        randomSpeed.isOn = settings.randomSpeedEnabled;
-        pixelSnap.isOn = settings.pixelSnapping;
-        chromakey.value = settings.chromakeyId;
-        imageScaleSlider.value = settings.imageScale;
+        m_settings.avatarAreaWidth = /*Launcher.Instance.WorldSize.x **/ value;
+    }
 
-        worldSizeSlider.value = 1.0f / MaxWorldSize * worldSize;
-        SetWorldSize();
+    public void SetAvatarAreaHeight(float value)
+    {
+        m_settings.avatarAreaHeight = /*Launcher.Instance.WorldSize.y **/ value;
     }
 }

@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Data;
+using UI;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.U2D;
 using Random = UnityEngine.Random;
 
@@ -42,9 +41,7 @@ namespace Avatars
         Avatar m_targetAvatar;
 
         public AvatarState m_currentState;
-        readonly AvatarState[] m_randomStates = { AvatarState.Idle, AvatarState.Left, AvatarState.Right };
-        Rect m_area;
-        Rect m_fullArea;
+        Rect m_flyArea;
 
         AvatarsController m_avatarsController;
 
@@ -53,12 +50,13 @@ namespace Avatars
         Vector3 m_lastPosition;
         public AreaOffset areaOffset;
 
-        AvatarMove m_avatarMovement;
+        AppSettingsData m_settings;
 
 
         void Start()
         {
             m_iFree = false;
+            m_settings = LocalStorage.GetSettings();
             m_spriteRenderer = gameObject.GetComponentInChildren<SpriteRenderer>();
             m_spriteRenderer.sharedMaterial = shadeMaterial;
             m_isAttackPermitted = true;
@@ -76,34 +74,19 @@ namespace Avatars
         public void Init(PixelPerfectCamera pixelPerfectCamera, string avatarName, AvatarsController avatarsController, Dictionary<AvatarState, int[]> avatarIndices)
         {
             randomSpeed = 1.0f;
-
             m_iFree = false;
             m_avatars = avatarIndices;
             m_avatarsController = avatarsController;
             this.avatarName = avatarName;
             m_pixelPerfectCamera = pixelPerfectCamera;
-            m_area = avatarsController.avatarsArea;
-            m_fullArea = avatarsController.fullArea;
             m_leaveTime = 5.0f * 30.0f;
-
-            if (avatarIndices.ContainsKey(AvatarState.Idle))
-            {
-                var values = Enum.GetValues(typeof(AvatarMove));
-                var randomIndex = Random.Range(0, values.Length);
-                m_avatarMovement = (AvatarMove)values.GetValue(randomIndex);
-            }
-            else
-            {
-                m_avatarMovement = AvatarMove.Random;
-            }
         }
 
         void Update()
         {
-            // m_area = m_avatarsController.avatarsArea;
             SetAreaVerticalOffset();
-
-            var deltaTime = Time.deltaTime * Launcher.Instance.config.avatarsSpeed * randomSpeed;
+            SetRandomSpeed();
+            var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * Configuration.MaxAvatarSpeed * randomSpeed;
 
             m_leaveTime += Time.deltaTime;
             if (m_leaveTime > 5 * 60)
@@ -127,7 +110,7 @@ namespace Avatars
 
             if (m_gotHit)
             {
-                Fly(deltaTime);
+                Fly();
                 if (m_flyCurrentSpeed <= 0.0f)
                 {
                     m_wasAttacked = false;
@@ -136,6 +119,15 @@ namespace Avatars
             }
 
             m_lastPosition = transform.position;
+        }
+
+        bool m_randomSpeedEnable;
+
+        void SetRandomSpeed()
+        {
+            if (m_settings.randomSpeedEnabled == m_randomSpeedEnable) return;
+            m_randomSpeedEnable = m_settings.randomSpeedEnabled;
+            randomSpeed = m_randomSpeedEnable ? Random.Range(0.5f, 3.0f) : 1.0f;
         }
 
         void SetAreaVerticalOffset()
@@ -163,39 +155,44 @@ namespace Avatars
             }
         }
 
-        void Fly(float deltaTime)
+        void Fly()
         {
+            var deltaTime = Time.deltaTime * 4.0f;
+            var size = Core.Instance.WorldSize;
+            m_flyArea.position = (Vector2)m_pixelPerfectCamera.transform.position - size * 0.5f;
+            m_flyArea.size = size;
+
             if (m_flyCurrentSpeed > 0)
             {
                 transform.position += m_flyDirection * (m_flyCurrentSpeed * deltaTime);
 
-                if (transform.position.x < m_fullArea.xMin)
+                if (transform.position.x < m_flyArea.xMin)
                 {
-                    transform.position = new Vector3(m_fullArea.xMin, transform.position.y, transform.position.z);
+                    transform.position = new Vector3(m_flyArea.xMin, transform.position.y, transform.position.z);
                     m_flyDirection.x = Mathf.Abs(m_flyDirection.x);
                 }
-                else if (transform.position.x > m_fullArea.xMax)
+                else if (transform.position.x > m_flyArea.xMax)
                 {
-                    transform.position = new Vector3(m_fullArea.xMax, transform.position.y, transform.position.z);
+                    transform.position = new Vector3(m_flyArea.xMax, transform.position.y, transform.position.z);
                     m_flyDirection.x = -Mathf.Abs(m_flyDirection.x);
                 }
 
-                if (transform.position.y < m_fullArea.yMin + areaOffset.Bottom)
+                if (transform.position.y < m_flyArea.yMin + areaOffset.Bottom)
                 {
-                    transform.position = new Vector3(transform.position.x, m_fullArea.yMin + areaOffset.Bottom, transform.position.z);
+                    transform.position = new Vector3(transform.position.x, m_flyArea.yMin + areaOffset.Bottom, transform.position.z);
                     m_flyDirection.y = Mathf.Abs(m_flyDirection.y);
                 }
-                else if (transform.position.y > m_fullArea.yMax + areaOffset.Top)
+                else if (transform.position.y > m_flyArea.yMax + areaOffset.Top)
                 {
-                    transform.position = new Vector3(transform.position.x, m_fullArea.yMax + areaOffset.Top, transform.position.z);
+                    transform.position = new Vector3(transform.position.x, m_flyArea.yMax + areaOffset.Top, transform.position.z);
                     m_flyDirection.y = -Mathf.Abs(m_flyDirection.y);
                 }
 
                 m_flyCurrentSpeed -= FlyDeceleration * Time.deltaTime;
-                if (m_flyCurrentSpeed < 0)
-                {
-                    m_flyCurrentSpeed = 0;
-                }
+                // if (m_flyCurrentSpeed < 0)
+                // {
+                //     m_flyCurrentSpeed = 0;
+                // }
             }
         }
 
@@ -206,18 +203,18 @@ namespace Avatars
         }
 
 
-        void OvalMovement(float deltaTime)
-        {
-            m_angle += deltaTime / 8.0f;
-            if (m_angle > Mathf.PI * 2)
-                m_angle -= Mathf.PI * 2;
-            var a = m_area.width / 2f;
-            var b = m_area.height / 2f;
-            var center = new Vector2(m_area.x + a, m_area.y + b);
-            var x = center.x + a * Mathf.Cos(m_angle);
-            var y = center.y + b * Mathf.Sin(m_angle);
-            transform.position = new Vector3(x, y, transform.position.z);
-        }
+        // void OvalMovement(float deltaTime)
+        // {
+        //     m_angle += deltaTime / 8.0f;
+        //     if (m_angle > Mathf.PI * 2)
+        //         m_angle -= Mathf.PI * 2;
+        //     var a = m_area.width / 2f;
+        //     var b = m_area.height / 2f;
+        //     var center = new Vector2(m_area.x + a, m_area.y + b);
+        //     var x = center.x + a * Mathf.Cos(m_angle);
+        //     var y = center.y + b * Mathf.Sin(m_angle);
+        //     transform.position = new Vector3(x, y, transform.position.z);
+        // }
 
         void RandomMovement(float deltaTime)
         {
@@ -234,7 +231,7 @@ namespace Avatars
                 }
                 else
                 {
-                    m_randomTargetDirection.x = Random.Range(m_area.min.x, m_area.max.x);
+                    m_randomTargetDirection.x = Random.Range(AvatarArea.Rect.min.x, AvatarArea.Rect.max.x);
                 }
 
                 m_currentFrame = 0;
@@ -242,7 +239,7 @@ namespace Avatars
 
             if (Mathf.Abs(transform.position.y - m_randomTargetDirection.y) < 0.00625f)
             {
-                m_randomTargetDirection.y = Random.Range(m_area.min.y + areaOffset.Bottom, m_area.max.y + areaOffset.Top);
+                m_randomTargetDirection.y = Random.Range(AvatarArea.Rect.min.y + areaOffset.Bottom, AvatarArea.Rect.max.y + areaOffset.Top);
             }
         }
 
@@ -272,6 +269,7 @@ namespace Avatars
                 {
                     return false;
                 }
+
                 m_frameTime = 0.0f;
                 m_currentFrame++;
                 var frameId = m_avatars[m_currentState][m_currentFrame];
@@ -282,8 +280,8 @@ namespace Avatars
             m_frameTime += Time.deltaTime * 1.45f;
             return true;
         }
-      
-        
+
+
         void PlayAnimation()
         {
             if (m_frameTime > 1.0f / 8.0f)
@@ -297,9 +295,15 @@ namespace Avatars
                     // return;
                 }
 
-                var frameId = m_avatars[m_currentState][m_currentFrame];
-                var sprite = m_avatarsController.GetSprite(frameId);
-                m_spriteRenderer.sprite = sprite;
+                if (m_avatars.TryGetValue(m_currentState, out var indices))
+                {
+                    var sprite = m_avatarsController.GetSprite(indices[m_currentFrame]);
+                    m_spriteRenderer.sprite = sprite;    
+                }
+                else
+                {
+                    Log.LogMessage($"{avatarName}: не имеет анимации '{m_currentState}' но она вызывается волшебным образом ;) ");
+                }
             }
 
             m_frameTime += Time.deltaTime * 1.45f;

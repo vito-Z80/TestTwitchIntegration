@@ -1,15 +1,24 @@
 ﻿using UnityEngine;
+using UnityEngine.U2D;
 
 public static class Utils
 {
-    public static Color GetChromakeyColor(int id)
+    public static Vector2 GetScreenSize(PixelPerfectCamera pixelPerfectCamera)
     {
-        return id switch
-        {
-            0 => Color.green,
-            1 => Color.blue,
-            2 => Color.magenta,
-            _ => Color.clear
-        };
+        int refResolutionX = pixelPerfectCamera.refResolutionX;
+        int refResolutionY = pixelPerfectCamera.refResolutionY;
+
+        int screenWidth = Screen.width;
+        int screenHeight = Screen.height;
+
+        // zoom level (PPU scale)
+        int verticalZoom = screenHeight / refResolutionY;
+        int horizontalZoom = screenWidth / refResolutionX;
+        var zoom = Mathf.Max(1, Mathf.Min(verticalZoom, horizontalZoom));
+
+        var offscreenRTWidth = screenWidth / zoom / 2 * 2;
+        var offscreenRTHeight = screenHeight / zoom / 2 * 2;
+
+        return new Vector2(offscreenRTWidth, offscreenRTHeight);
     }
 }

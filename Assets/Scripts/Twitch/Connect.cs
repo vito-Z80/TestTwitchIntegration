@@ -14,8 +14,8 @@ namespace Twitch
 
         readonly TwitchOAuth m_oauth;
         readonly TwitchChatClient m_twitchChatClient;
-        FieldsData m_fieldsData;
-        TokenData m_tokenData;
+        AuthorizationData m_authorizationData;
+        AuthorizationTokenData m_authorizationTokenData;
 
         readonly ConnectPanel m_panel;
 
@@ -32,10 +32,10 @@ namespace Twitch
         public async Task AutoConnectTwitch()
         {
             Log.LogMessage("AUTO Connecting Twitch Chat...");
-            m_fieldsData = LoadFieldsData();
-            m_oauth.TokenData = LoadTokenData();
+            m_authorizationData = LoadAuthorizationData();
+            m_oauth.AuthorizationTokenData = LoadTokenData();
 
-            if (m_fieldsData == null && m_oauth.TokenData == null)
+            if (m_authorizationData == null || m_oauth.AuthorizationTokenData == null)
             {
                 m_panel.gameObject.SetActive(true);
                 Log.LogMessage("Automatic connection not possible, no data available.");
@@ -51,7 +51,7 @@ namespace Twitch
                 if (m_secret != null)
                 {
                     Log.LogMessage("Try refresh Token");
-                    await m_oauth.RefreshAccessToken(m_fieldsData.ClientId, m_secret);   
+                    await m_oauth.RefreshAccessToken(m_authorizationData.ClientId, m_secret);   
                 }
                 else
                 {
@@ -62,19 +62,19 @@ namespace Twitch
                 }
             }
 
-            var userName = CorrectString(m_fieldsData.UserName);
-            var channelName = CorrectString(m_fieldsData.ChannelName);
+            var userName = CorrectString(m_authorizationData.UserName);
+            var channelName = CorrectString(m_authorizationData.ChannelName);
             await m_twitchChatClient.Connect(m_oauth, userName, channelName);
         }
 
 
         public async void ConnectTwitch()
         {
-            SaveFieldsData();
-            var userName = CorrectString(m_fieldsData.UserName);
-            var channelName = CorrectString(m_fieldsData.ChannelName);
-            var redirect = CorrectString(m_fieldsData.Redirect);
-            var clientId = CorrectString(m_fieldsData.ClientId);
+            SaveAuthorizationData();
+            var userName = CorrectString(m_authorizationData.UserName);
+            var channelName = CorrectString(m_authorizationData.ChannelName);
+            var redirect = CorrectString(m_authorizationData.Redirect);
+            var clientId = CorrectString(m_authorizationData.ClientId);
             m_secret = CorrectString(m_panel.clientSecret.text);
             await m_oauth.Auth(clientId, m_secret, redirect);
             await m_twitchChatClient.Connect(m_oauth, userName, channelName);
@@ -112,14 +112,14 @@ namespace Twitch
 
 
         [CanBeNull]
-        TokenData LoadTokenData()
+        AuthorizationTokenData LoadTokenData()
         {
             if (PlayerPrefs.HasKey(TwitchOAuth.TokenDataKey))
             {
                 var json = PlayerPrefs.GetString(TwitchOAuth.TokenDataKey);
                 if (!string.IsNullOrEmpty(json))
                 {
-                    return JsonConvert.DeserializeObject<TokenData>(json);
+                    return JsonConvert.DeserializeObject<AuthorizationTokenData>(json);
                 }
             }
 
@@ -127,31 +127,31 @@ namespace Twitch
         }
 
 
-        void SaveFieldsData()
+        void SaveAuthorizationData()
         {
-            m_fieldsData ??= new FieldsData();
-            m_fieldsData.ChannelName = CorrectString(m_panel.channelName.text);
-            m_fieldsData.ClientId = CorrectString(m_panel.clientId.text);
-            m_fieldsData.Redirect = CorrectString(m_panel.redirect.text);
-            m_fieldsData.UserName = CorrectString(m_panel.userName.text);
+            m_authorizationData ??= new AuthorizationData();
+            m_authorizationData.ChannelName = CorrectString(m_panel.channelName.text);
+            m_authorizationData.ClientId = CorrectString(m_panel.clientId.text);
+            m_authorizationData.Redirect = CorrectString(m_panel.redirect.text);
+            m_authorizationData.UserName = CorrectString(m_panel.userName.text);
 
-            var json = JsonConvert.SerializeObject(m_fieldsData);
+            var json = JsonConvert.SerializeObject(m_authorizationData);
             PlayerPrefs.SetString(FieldKey, json);
             // PlayerPrefs.Save();
         }
 
         [CanBeNull]
-        FieldsData LoadFieldsData()
+        AuthorizationData LoadAuthorizationData()
         {
             if (PlayerPrefs.HasKey(FieldKey))
             {
                 var json = PlayerPrefs.GetString(FieldKey);
-                m_fieldsData = JsonConvert.DeserializeObject<FieldsData>(json);
-                m_panel.channelName.text = m_fieldsData.ChannelName;
-                m_panel.userName.text = m_fieldsData.UserName;
-                m_panel.redirect.text = m_fieldsData.Redirect;
-                m_panel.clientId.text = m_fieldsData.ClientId;
-                return m_fieldsData;
+                m_authorizationData = JsonConvert.DeserializeObject<AuthorizationData>(json);
+                m_panel.channelName.text = m_authorizationData.ChannelName;
+                m_panel.userName.text = m_authorizationData.UserName;
+                m_panel.redirect.text = m_authorizationData.Redirect;
+                m_panel.clientId.text = m_authorizationData.ClientId;
+                return m_authorizationData;
             }
 
             return null;

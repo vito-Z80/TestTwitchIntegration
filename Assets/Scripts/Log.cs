@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class Log
 {
-    static readonly StringBuilder Text = new StringBuilder();
+    static readonly StringBuilder Text = new();
 
     static readonly string LogFilePath = Path.Combine(Application.persistentDataPath, "log.txt");
 

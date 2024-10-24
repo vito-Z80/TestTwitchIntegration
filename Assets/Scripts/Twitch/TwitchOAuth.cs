@@ -13,7 +13,7 @@ namespace Twitch
     public class TwitchOAuth
     {
         public const string TokenDataKey = "TokenDataKey";
-        [HideInInspector] public TokenData TokenData;
+        [HideInInspector] public AuthorizationTokenData AuthorizationTokenData;
         
         public async Task Auth(string clientId, string clientSecret, string redirectUri)
         {
@@ -97,7 +97,7 @@ namespace Twitch
         // Обработка ответа с токеном и сохранение его в PlayerPrefs
         void ProcessTokenResponse(string jsonResponse)
         {
-            TokenData = JsonConvert.DeserializeObject<TokenData>(jsonResponse);
+            AuthorizationTokenData = JsonConvert.DeserializeObject<AuthorizationTokenData>(jsonResponse);
 
             PlayerPrefs.SetString(TokenDataKey, jsonResponse);
             // PlayerPrefs.Save();
@@ -110,8 +110,8 @@ namespace Twitch
             var url = "https://id.twitch.tv/oauth2/validate";
             using (UnityWebRequest www = UnityWebRequest.Get(url))
             {
-                Log.LogMessage($"Tile left: {TokenData.expires_in}");
-                www.SetRequestHeader("Authorization", "OAuth " + TokenData.access_token);
+                Log.LogMessage($"Time left: {AuthorizationTokenData.expires_in}");
+                www.SetRequestHeader("Authorization", "OAuth " + AuthorizationTokenData.access_token);
                 await www.SendWebRequest();
 
                 if (www.result == UnityWebRequest.Result.Success)
@@ -153,7 +153,7 @@ namespace Twitch
             form.AddField("client_id", clientId);
             form.AddField("client_secret", secret);
             form.AddField("grant_type", "refresh_token");
-            form.AddField("refresh_token", TokenData.refresh_token);
+            form.AddField("refresh_token", AuthorizationTokenData.refresh_token);
 
             using (UnityWebRequest www = UnityWebRequest.Post(url, form))
             {

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Data;
@@ -10,25 +9,13 @@ namespace Images
 {
     public class CentralImage : MonoBehaviour
     {
-        [SerializeField] Camera pixelCamera;
         [SerializeField] Sprite testSprite;
 
         Image m_image;
         bool m_isShowed;
 
         const float MaxImageSize = 1024.0f;
-
-        void OnEnable()
-        {
-            Configuration.OnShowTest += TestShow;
-            Configuration.OnImageScaleChanged += ScaleImage;
-        }
-
-        void OnDisable()
-        {
-            Configuration.OnShowTest -= TestShow;
-            Configuration.OnImageScaleChanged -= ScaleImage;
-        }
+        
 
         void Start()
         {
@@ -39,7 +26,6 @@ namespace Images
         public async Task Show(string message, ImageData[] imageData)
         {
             if (m_isShowed) return;
-            // m_image.SetNativeSize();
             var sprite = await ParseMessage(message, imageData);
             if (sprite is null) return;
             m_isShowed = true;
@@ -98,12 +84,12 @@ namespace Images
         }
 
 
-        void ScaleImage(float scale)
+        public void ScaleImage(float scale)
         {
             transform.localScale = Vector3.one * scale;
         }
 
-        void TestShow(bool isShowed)
+        public void TestShow(bool isShowed)
         {
             if (isShowed)
             {

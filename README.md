@@ -88,9 +88,9 @@ Users can add custom avatar sprites to the directory: `StreamingAssets/Graphics/
 
 ## Integration with OBS
 
-1. Add the application as a source in OBS.
-2. Add a filter: **Chroma Key**.
-3. Set the chroma key color to **magenta**.
-4. Resize and position the application window as desired.
+1. Create new Game Capture
+2. Mode: Capture specific window
+3. Window: [TwitchAvatars.exe]
+4. ✅ **Allow transparency**
 
 ---

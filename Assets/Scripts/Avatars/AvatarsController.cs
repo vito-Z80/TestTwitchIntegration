@@ -22,27 +22,18 @@ namespace Avatars
         PixelPerfectCamera m_pixelPerfectCamera;
         Camera m_camera;
         AvatarsStorage m_avatarsStorage;
-        public Rect avatarsArea;
-        public Rect fullArea;
         Sprite[] m_sprites;
 
 
         void Start()
         {
-            m_pixelPerfectCamera = Launcher.Instance.Ppc;
-            m_camera = Launcher.Instance.Camera;
+            m_pixelPerfectCamera = Core.Instance.Ppc;
+            m_camera = Core.Instance.Camera;
             m_avatarsStorage = new AvatarsStorage();
             m_avatarsStorage.Init();
             m_sprites = m_avatarsStorage.GetSprites();
             TwitchChatController.OnAvatarStarted += StartAvatar;
             TwitchChatController.OnAvatarPursuit += PursuitAvatar;
-        }
-
-        void Update()
-        {
-            var worldSize = Launcher.Instance.WorldSize;
-            fullArea.position = (Vector2)m_pixelPerfectCamera.transform.position - worldSize * 0.5f;
-            fullArea.size = worldSize;
         }
 
         public Sprite GetSprite(int id) => m_sprites[id];
@@ -111,36 +102,7 @@ namespace Avatars
             m_names[userName] = un;
         }
 
-        void SetAvatarsRect(Rect rect)
-        {
-            avatarsArea.position = rect.position;
-            avatarsArea.size = rect.size;
-        }
-
-        void OnEnable()
-        {
-            Configuration.OnShowTest += ShowTestAvatarsTest;
-            Configuration.OnRandomSpeed += SetRandomSpeedEachAvatar;
-            AvatarArea.OnRectSizeChanged += SetAvatarsRect;
-        }
-
-
-        void OnDisable()
-        {
-            Configuration.OnShowTest -= ShowTestAvatarsTest;
-            AvatarArea.OnRectSizeChanged -= SetAvatarsRect;
-        }
-
-        void SetRandomSpeedEachAvatar(bool isRandom)
-        {
-            foreach (var avatar in m_avatars.Values)
-            {
-                var randomSpeed = isRandom ? Random.Range(0.5f, 3.0f) : 1.0f;
-                avatar.randomSpeed = randomSpeed;
-            }
-        }
-
-        void ShowTestAvatarsTest(bool isTest)
+        public void ShowTest(bool isTest)
         {
             if (isTest)
             {

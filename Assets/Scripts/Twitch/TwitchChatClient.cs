@@ -82,7 +82,7 @@ namespace Twitch
         private void Authenticate()
         {
             // Отправляем команды для аутентификации.
-            SendCommand($"PASS oauth:{m_twitchOAuth.TokenData.access_token}");
+            SendCommand($"PASS oauth:{m_twitchOAuth.AuthorizationTokenData.access_token}");
             SendCommand($"NICK {m_userName}");
             SendCommand($"JOIN #{m_channelName}");
         }
