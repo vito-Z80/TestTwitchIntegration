@@ -5,11 +5,12 @@ public static class Utils
 {
     public static Vector2 GetScreenSize(PixelPerfectCamera pixelPerfectCamera)
     {
+        var settings = LocalStorage.GetSettings();
         int refResolutionX = pixelPerfectCamera.refResolutionX;
         int refResolutionY = pixelPerfectCamera.refResolutionY;
 
-        int screenWidth = Screen.width;
-        int screenHeight = Screen.height;
+        int screenWidth = settings.windowWidth;
+        int screenHeight = settings.windowHeight;
 
         // zoom level (PPU scale)
         int verticalZoom = screenHeight / refResolutionY;

@@ -14,11 +14,11 @@ namespace Images
         Image m_image;
         bool m_isShowed;
 
-        const float MaxImageSize = 1024.0f;
-        
+        AppSettingsData m_settings;
 
         void Start()
         {
+            m_settings = LocalStorage.GetSettings();
             transform.position = Vector3.one * 10000;
             m_image = GetComponentInChildren<Image>();
         }
@@ -29,32 +29,19 @@ namespace Images
             var sprite = await ParseMessage(message, imageData);
             if (sprite is null) return;
             m_isShowed = true;
-            ImageSizeCalculate(sprite);
+            ImageSizeCalculate();
             m_image.sprite = sprite;
             StartCoroutine(ShowImage());
         }
-        
-        void ImageSizeCalculate(Sprite sprite)
+
+        void ImageSizeCalculate()
         {
-            var width = sprite.bounds.size.x;
-            var height = sprite.bounds.size.y;
-            var aspectRatio = Mathf.Max(width ,height) / Mathf.Min(width, height);
-            if (width > height)
-            {
-                width = MaxImageSize;
-                height = MaxImageSize / aspectRatio;
-            }
-            else if (width < height)
-            {
-                height = MaxImageSize;
-                width = MaxImageSize / aspectRatio;
-            }
-            else
-            {
-                width = MaxImageSize;
-                height = MaxImageSize;
-            }
-            m_image.GetComponent<RectTransform>().sizeDelta = new Vector2(width, height);
+            m_image.SetNativeSize();
+            float minWindowSize = Mathf.Min(m_settings.windowWidth, m_settings.windowHeight);
+            var maxImageSize = Mathf.Max(m_image.rectTransform.sizeDelta.x, m_image.rectTransform.sizeDelta.y);
+            var delta = minWindowSize / maxImageSize;
+            var scale = new Vector3(delta, delta, 1.0f);
+            m_image.rectTransform.localScale = scale;
         }
 
         Task<Sprite> ParseMessage(string message, ImageData[] imageData)
@@ -93,7 +80,7 @@ namespace Images
         {
             if (isShowed)
             {
-                ImageSizeCalculate(testSprite);
+                ImageSizeCalculate();
                 m_image.sprite = testSprite;
                 transform.localPosition = Vector3.zero;
             }

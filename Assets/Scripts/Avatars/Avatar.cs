@@ -86,7 +86,7 @@ namespace Avatars
         {
             SetAreaVerticalOffset();
             SetRandomSpeed();
-            var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * Configuration.MaxAvatarSpeed * randomSpeed;
+            var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * 10.0f * randomSpeed;
 
             m_leaveTime += Time.deltaTime;
             if (m_leaveTime > 5 * 60)

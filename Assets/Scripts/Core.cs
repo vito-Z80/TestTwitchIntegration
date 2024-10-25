@@ -65,8 +65,6 @@ public class Core : MonoBehaviour
 
     void Update()
     {
-        CorrectRuntimeSizeWindowSize();
-
         m_connect?.Update();
     }
 
@@ -96,28 +94,19 @@ public class Core : MonoBehaviour
         m_connect.OnApplicationQuit();
     }
 
-    void CorrectRuntimeSizeWindowSize()
+    public void SetResolution(int width, int height)
     {
-        if (!WasWindowResized()) return;
-        m_windowSize.x = Screen.width / 2 * 2;
-        m_windowSize.y = Screen.height / 2 * 2;
-        var windowPosition = Screen.mainWindowPosition;
-        var displayInfo = Screen.mainWindowDisplayInfo;
-        displayInfo.width = m_windowSize.x;
-        displayInfo.height = m_windowSize.y;
-        Screen.MoveMainWindowTo(displayInfo, windowPosition);
+        m_windowSize.x = width;
+        m_windowSize.y = height;
+        Screen.SetResolution(m_windowSize.x, m_windowSize.y, false);
         m_worldSize = Utils.GetScreenSize(pixelPerfectCamera) / pixelPerfectCamera.assetsPPU;
+        Log.LogMessage(m_worldSize.ToString());
+        Log.LogMessage(m_windowSize.ToString());
     }
-
-    public bool WasWindowResized()
-    {
-        return Screen.width != m_windowSize.x || Screen.height != m_windowSize.y;
-    }
-
 
     public void ChangeCameraPpu(float scale)
     {
-        pixelPerfectCamera.assetsPPU = (int)(scale * Configuration.MaxCameraPpu);
+        pixelPerfectCamera.assetsPPU = (int)scale;
         m_worldSize = Utils.GetScreenSize(pixelPerfectCamera) / pixelPerfectCamera.assetsPPU;
     }
 

@@ -34,16 +34,16 @@ namespace UI
         void OnEnable()
         {
             transform.position = new Vector3(m_settings.areaPosX, m_settings.areaPosY, 0);
-            ChangeAvatarAreaHorizontalSize(m_settings.avatarAreaWidth);
-            ChangeAvatarAreaVertical(m_settings.avatarAreaHeight);
             var pos = new Vector3(m_settings.areaPosX, m_settings.areaPosY, 0.0f);
             FitScreen(m_spriteRenderer.bounds, pos);
         }
 
         void Update()
         {
+            ChangeAvatarAreaHorizontalSize();
+            ChangeAvatarAreaVertical();
+            
             Drag();
-
             if (m_offsetDragPosition != Vector3.zero)
             {
                 FitScreen(m_spriteRenderer.bounds, transform.position += m_offsetDragPosition);
@@ -120,15 +120,15 @@ namespace UI
             m_settings.areaPosY = pos.y;
         }
 
-        public void ChangeAvatarAreaHorizontalSize(float normalizedWidth)
+        void ChangeAvatarAreaHorizontalSize()
         {
-            transform.localScale = new Vector3(normalizedWidth * m_.WorldSize.x, transform.localScale.y, 1.0f);
+            transform.localScale = new Vector3(m_settings.avatarAreaWidth * m_.WorldSize.x, transform.localScale.y, 1.0f);
             FitScreen(m_spriteRenderer.bounds, transform.position);
         }
 
-        public void ChangeAvatarAreaVertical(float normalizedHeight)
+        void ChangeAvatarAreaVertical()
         {
-            transform.localScale = new Vector3(transform.localScale.x, normalizedHeight * m_.WorldSize.y, 1.0f);
+            transform.localScale = new Vector3(transform.localScale.x, m_settings.avatarAreaHeight * m_.WorldSize.y, 1.0f);
             FitScreen(m_spriteRenderer.bounds, transform.position);
         }
     }
