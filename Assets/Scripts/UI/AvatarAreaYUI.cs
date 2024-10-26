@@ -18,7 +18,8 @@ namespace UI
         void Start()
         {
             m_settings = LocalStorage.GetSettings();
-            slider.value = m_settings.areaPosY;
+            m_lastY = m_settings.areaPosY;
+            slider.SetValueWithoutNotify(m_settings.areaPosY);
             inputField.text = $"{Mathf.RoundToInt(slider.value * m_settings.windowHeight)}";
         }
 

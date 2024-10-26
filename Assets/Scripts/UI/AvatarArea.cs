@@ -28,11 +28,17 @@ namespace UI
             m_spriteRenderer = GetComponent<SpriteRenderer>();
             m_pixelPerfectCamera = m_.Ppc;
             m_camera = m_.Camera;
-            var pos = new Vector3(m_settings.areaPosX * m_.WorldSize.x, m_settings.areaPosY * m_.WorldSize.y, 0.0f) - (Vector3)m_.WorldSize / 2.0f;
+            Debug.Log(m_spriteRenderer.bounds);
+            var pos = new Vector3(
+                (m_settings.areaPosX - 0.5f + m_settings.avatarAreaWidth / 2.0f) * m_.WorldSize.x ,
+                (m_settings.areaPosY - 0.5f + m_settings.avatarAreaHeight / 2.0f) * m_.WorldSize.y ,
+                0.0f);
             transform.position = pos;
             ChangeAvatarAreaWidth();
             ChangeAvatarAreaHeight();
-            FitScreen(m_spriteRenderer.bounds, transform.position);
+            Debug.Log(transform.position);
+            Debug.Log(m_spriteRenderer.bounds);
+            FitScreen(m_spriteRenderer.bounds, pos);
         }
 
         void Update()
@@ -89,7 +95,7 @@ namespace UI
             var pos = GetCursorPosition();
             var halfWorldWidth = m_.WorldSize.x / 2.0f;
             var halfWorldHeight = m_.WorldSize.y / 2.0f;
-            
+
             var minX = m_pixelPerfectCamera.transform.position.x - halfWorldWidth;
             var maxX = m_pixelPerfectCamera.transform.position.x + halfWorldWidth;
             var minY = m_pixelPerfectCamera.transform.position.y - halfWorldHeight;

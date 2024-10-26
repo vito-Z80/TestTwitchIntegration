@@ -18,7 +18,7 @@ namespace UI
 
         List<WindowResolutionData> m_actualResolutions = new();
 
-        void Start()
+        void Awake()
         {
             m_settings = LocalStorage.GetSettings();
             m_dropdown = GetComponent<TMP_Dropdown>();
