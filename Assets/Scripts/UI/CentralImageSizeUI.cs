@@ -24,7 +24,6 @@ namespace UI
         public void UserSlideValue(float value)
         {
             var maxSize = Mathf.Min(m_settings.windowWidth, m_settings.windowHeight);
-            Debug.Log($"User slide value {value} to {maxSize} = {(int)(value * maxSize)}");
             inputField.text = $"{(int)(value * maxSize)}";
             m_settings.imageScale = value;
         }
