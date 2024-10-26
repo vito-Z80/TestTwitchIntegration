@@ -28,21 +28,15 @@ namespace UI
             m_spriteRenderer = GetComponent<SpriteRenderer>();
             m_pixelPerfectCamera = m_.Ppc;
             m_camera = m_.Camera;
-        }
-
-
-        void OnEnable()
-        {
-            transform.position = new Vector3(m_settings.areaPosX, m_settings.areaPosY, 0);
-            var pos = new Vector3(m_settings.areaPosX, m_settings.areaPosY, 0.0f);
-            FitScreen(m_spriteRenderer.bounds, pos);
+            var pos = new Vector3(m_settings.areaPosX * m_.WorldSize.x, m_settings.areaPosY * m_.WorldSize.y, 0.0f) - (Vector3)m_.WorldSize / 2.0f;
+            transform.position = pos;
+            ChangeAvatarAreaWidth();
+            ChangeAvatarAreaHeight();
+            FitScreen(m_spriteRenderer.bounds, transform.position);
         }
 
         void Update()
         {
-            ChangeAvatarAreaHorizontalSize();
-            ChangeAvatarAreaVertical();
-            
             Drag();
             if (m_offsetDragPosition != Vector3.zero)
             {
@@ -93,40 +87,58 @@ namespace UI
         bool OutOfScreen()
         {
             var pos = GetCursorPosition();
-            var minX = m_pixelPerfectCamera.transform.position.x - m_.WorldSize.x / 2.0f;
-            var maxX = m_pixelPerfectCamera.transform.position.x + m_.WorldSize.x / 2.0f;
-            var minY = m_pixelPerfectCamera.transform.position.y - m_.WorldSize.y / 2.0f;
-            var maxY = m_pixelPerfectCamera.transform.position.y + m_.WorldSize.y / 2.0f;
+            var halfWorldWidth = m_.WorldSize.x / 2.0f;
+            var halfWorldHeight = m_.WorldSize.y / 2.0f;
+            
+            var minX = m_pixelPerfectCamera.transform.position.x - halfWorldWidth;
+            var maxX = m_pixelPerfectCamera.transform.position.x + halfWorldWidth;
+            var minY = m_pixelPerfectCamera.transform.position.y - halfWorldHeight;
+            var maxY = m_pixelPerfectCamera.transform.position.y + halfWorldHeight;
             return pos.x < minX || pos.y < minY || pos.x > maxX || pos.y > maxY;
         }
 
         void FitScreen(Bounds bounds, Vector3 position)
         {
-            var minX = m_pixelPerfectCamera.transform.position.x - m_.WorldSize.x / 2.0f + bounds.extents.x;
-            var maxX = m_pixelPerfectCamera.transform.position.x + m_.WorldSize.x / 2.0f - bounds.extents.x;
+            var halfWorldWidth = m_.WorldSize.x / 2.0f;
+            var halfWorldHeight = m_.WorldSize.y / 2.0f;
+            var minX = m_pixelPerfectCamera.transform.position.x - halfWorldWidth + bounds.extents.x;
+            var maxX = m_pixelPerfectCamera.transform.position.x + halfWorldWidth - bounds.extents.x;
 
-            var minY = m_pixelPerfectCamera.transform.position.y - m_.WorldSize.y / 2.0f + bounds.extents.y;
-            var maxY = m_pixelPerfectCamera.transform.position.y + m_.WorldSize.y / 2.0f - bounds.extents.y;
+            var minY = m_pixelPerfectCamera.transform.position.y - halfWorldHeight + bounds.extents.y;
+            var maxY = m_pixelPerfectCamera.transform.position.y + halfWorldHeight - bounds.extents.y;
 
             var x = Mathf.Clamp(position.x, minX, maxX);
             var y = Mathf.Clamp(position.y, minY, maxY);
 
-            var pos = new Vector3(x, y, 0);
+            var pos = new Vector3(x, y, 0); //  fitting world position
             transform.position = pos;
-            Rect.position = pos - m_spriteRenderer.bounds.extents;
-            Rect.size = m_spriteRenderer.bounds.size;
+            Rect.position = pos - bounds.extents; //  top-left
+            Rect.size = bounds.size; //  size
 
-            m_settings.areaPosX = pos.x;
-            m_settings.areaPosY = pos.y;
+            m_settings.areaPosX = (pos.x - bounds.extents.x) / m_.WorldSize.x + 0.5f;
+            m_settings.areaPosY = (pos.y - bounds.extents.y) / m_.WorldSize.y + 0.5f;
         }
 
-        void ChangeAvatarAreaHorizontalSize()
+        public void ChangeAvatarPosition()
+        {
+            var bounds = m_spriteRenderer.bounds;
+            var pos = new Vector3(
+                          m_settings.areaPosX * m_.WorldSize.x + bounds.extents.x,
+                          m_settings.areaPosY * m_.WorldSize.y + bounds.extents.y,
+                          0.0f)
+                      - (Vector3)m_.WorldSize / 2.0f;
+            transform.position = pos;
+            Rect.position = pos - bounds.extents; //  top-left
+            Rect.size = bounds.size; //  size
+        }
+
+        public void ChangeAvatarAreaWidth()
         {
             transform.localScale = new Vector3(m_settings.avatarAreaWidth * m_.WorldSize.x, transform.localScale.y, 1.0f);
             FitScreen(m_spriteRenderer.bounds, transform.position);
         }
 
-        void ChangeAvatarAreaVertical()
+        public void ChangeAvatarAreaHeight()
         {
             transform.localScale = new Vector3(transform.localScale.x, m_settings.avatarAreaHeight * m_.WorldSize.y, 1.0f);
             FitScreen(m_spriteRenderer.bounds, transform.position);

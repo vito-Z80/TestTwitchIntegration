@@ -32,7 +32,7 @@ namespace UI
                 var range = Mathf.Clamp(result, 0, m_settings.windowWidth);
                 inputField.text = $"{(int)range}";
                 var sliderValue = range / m_settings.windowWidth;
-                slider.value = sliderValue;
+                slider.SetValueWithoutNotify(sliderValue);
                 m_settings.avatarAreaWidth = sliderValue;
             }
         }

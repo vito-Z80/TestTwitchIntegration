@@ -13,51 +13,49 @@ namespace UI
         AppSettingsData m_settings;
 
 
-        Rect m_lastRect;
+        float m_lastX;
 
         void Start()
         {
             m_settings = LocalStorage.GetSettings();
-            // slider.value = m_settings.areaPosX;
-            // inputField.text = $"{(int)(m_settings.avatarAreaWidth * m_settings.windowWidth)}";
+            slider.value = m_settings.areaPosX;
+            inputField.text = $"{Mathf.RoundToInt(slider.value * m_settings.windowWidth)}";
         }
 
 
         void Update()
         {
-            var rect = AvatarArea.Rect;
-            if (rect == m_lastRect) return;
+            if (Mathf.Approximately(m_lastX, m_settings.areaPosX)) return;
 
-            var ppu = Core.Instance.Ppc.assetsPPU;
+            var normalizedAreaWidth = AvatarArea.Rect.width / Core.Instance.WorldSize.x;
+            var newValue = Mathf.Clamp(m_settings.areaPosX, 0, 1.0f - normalizedAreaWidth);
+            slider.SetValueWithoutNotify(newValue);
+            m_settings.areaPosX = newValue;
+            inputField.text = $"{Mathf.RoundToInt(newValue * m_settings.windowWidth)}";
 
-            var x = rect.xMin * ppu * 2.0f + m_settings.windowWidth * 0.5f;
-            inputField.text = $"{Mathf.RoundToInt(x)}";
-
-            m_lastRect = rect;
+            m_lastX = m_settings.areaPosX;
         }
 
         public void UserSlideValue(float value)
         {
-            // inputField.text = $"{(int)(value * m_settings.windowWidth)}";
-            // m_settings.areaPosX = value;
+            var normalizedAreaWidth = AvatarArea.Rect.width / Core.Instance.WorldSize.x;
+            var newValue = Mathf.Clamp(value, 0, 1.0f - normalizedAreaWidth);
+            slider.SetValueWithoutNotify(newValue);
+            m_settings.areaPosX = newValue;
+            inputField.text = $"{Mathf.RoundToInt(newValue * m_settings.windowWidth)}";
         }
 
         public void UserSetValue(string value)
         {
             if (float.TryParse(value, out var result))
             {
-                var rect = AvatarArea.Rect;
+                var avatarsWorldRect = AvatarArea.Rect;
                 var ppu = Core.Instance.Ppc.assetsPPU;
-                var areaPixHalfWidth = rect.size.x * ppu;
-                var leftX = Mathf.Clamp(result, 0, m_settings.windowWidth - areaPixHalfWidth * 2.0f);
-                // Debug.Log($"{leftX} | {rect.xMin * ppu * 2.0f + m_settings.windowWidth * 0.5f}");
-                inputField.text = $"{Mathf.RoundToInt(leftX)}";
-                m_settings.areaPosX = Mathf.RoundToInt(leftX / ppu * 0.5f - areaPixHalfWidth);
-                // var sliderValue = x / m_settings.windowWidth;
-                slider.value = leftX / m_settings.windowWidth;
-                var aaa = Core.Instance.WorldSize.x - Core.Instance.WorldSize.x / 2.0f + rect.size.x;
-                Debug.Log($"{leftX} | {aaa}");
-                // m_settings.avatarAreaWidth = sliderValue;
+                var screenAreaWidth = avatarsWorldRect.size.x * ppu;
+                var screenLeftX = Mathf.Clamp(result, 0, m_settings.windowWidth - screenAreaWidth * 2.0f);
+                inputField.text = $"{Mathf.RoundToInt(screenLeftX)}";
+                slider.SetValueWithoutNotify(screenLeftX / m_settings.windowWidth);
+                m_settings.areaPosX = slider.value;
             }
         }
     }
