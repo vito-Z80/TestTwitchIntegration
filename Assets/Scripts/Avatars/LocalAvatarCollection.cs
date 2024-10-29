@@ -35,11 +35,6 @@ namespace Avatars
             }
             AddMissingTextures(m_textures, avatars);
 
-            foreach (var avatar in avatars)
-            {
-                Log.LogMessage($"Create avatar: {avatar.Key}, states: {string.Join(",",avatar.Value.Keys)}");   
-            }
-
             m_avatarsAtlas = new AvatarsAtlas();
             m_avatarsAtlas.GenerateAtlas(m_textures);
             return avatars;

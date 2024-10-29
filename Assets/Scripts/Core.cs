@@ -111,8 +111,6 @@ public class Core : MonoBehaviour
         m_windowSize.y = height;
         Screen.SetResolution(m_windowSize.x, m_windowSize.y, false);
         m_worldSize = Utils.GetScreenSize(pixelPerfectCamera) / pixelPerfectCamera.assetsPPU;
-        Log.LogMessage(m_worldSize.ToString());
-        Log.LogMessage(m_windowSize.ToString());
     }
 
     public void ChangeCameraPpu(float scale)

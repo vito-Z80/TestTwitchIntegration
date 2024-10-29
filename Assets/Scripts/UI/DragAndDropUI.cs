@@ -1,10 +1,9 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace UI
 {
-    public class DragAndDropUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler,IPointerEnterHandler, IPointerExitHandler
+    public class DragAndDropUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField] Canvas canvas;
         RectTransform m_rectTransform;
@@ -16,6 +15,11 @@ namespace UI
             m_rectTransform = GetComponent<RectTransform>();
             m_canvasRect = canvas.GetComponent<RectTransform>();
             m_canvasGroup = GetComponent<CanvasGroup>();
+        }
+
+        void OnEnable()
+        {
+            m_rectTransform.anchoredPosition = FitToScreen(m_rectTransform.anchoredPosition);
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -72,7 +76,6 @@ namespace UI
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            
             // Debug.Log("OnPointerExit");
             Core.Instance.SetDefaultCursor();
         }

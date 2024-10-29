@@ -52,7 +52,6 @@ namespace UI
             var actualResolutions = new List<WindowResolutionData>();
             var monitorWidth = Display.main.systemWidth;
             var monitorHeight = Display.main.systemHeight;
-            Log.LogMessage(monitorWidth + "x" + monitorHeight);
             foreach (var resolutionData in resolutionsList.resolutions)
             {
                 if (resolutionData.width > monitorWidth || resolutionData.height > monitorHeight) continue;

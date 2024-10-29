@@ -24,7 +24,7 @@ namespace Data
         [JsonProperty("ps")] public bool pixelSnapping;
         [JsonProperty("r")] public bool randomSpeedEnabled;
         
-        [JsonProperty("at")] public string avatarNameTag = "!";
+        [JsonProperty("at")] public string avatarNameTag = "*";
         [JsonProperty("it")] public string imageNameTag = "!";
     }
 }

@@ -23,7 +23,6 @@ namespace Images
             m_localImageCollection = new LocalImageCollection();
             m_images = m_localImageCollection.GetImages();
             m_centralImage = GetComponentInChildren<CentralImage>();
-            Debug.Log(string.Join(",", m_images.Keys));
         }
 
 
@@ -32,10 +31,8 @@ namespace Images
         
         void ShowImage(string imageName)
         {
-            Debug.Log(imageName);
             if (m_images.TryGetValue(imageName, out var sprite))
             {
-                
                 m_centralImage.Show(sprite);
             }
         }
