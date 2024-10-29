@@ -12,56 +12,30 @@ namespace Images
 {
     public class LocalImageCollection
     {
-        const string AvatarsFolder = "Graphics/Images";
-        public const string UserStartPattern = "_";
+        const string ImagesFolder = "Graphics/Images";
 
-        public ImageData[] GetImages()
+        public Dictionary<string, Sprite> GetImages()
         {
-            var path = $"{Application.streamingAssetsPath}/{AvatarsFolder}";
+            var path = $"{Application.streamingAssetsPath}/{ImagesFolder}";
 
 
-            List<ImageData> images = new List<ImageData>();
+            Dictionary<string, Sprite> images = new();
             //  имена папок изображений
             var imageFolderPaths = Directory.GetDirectories(path);
 
             foreach (var imageFolder in imageFolderPaths)
             {
-                var data = GetImage(imageFolder);
-                if (data == null) continue;
-                images.Add(data);
+                var fileNames = Directory.GetFiles(imageFolder, "*.png");
+             
+                if (fileNames.Length == 0) continue;
+                
+                var texture = GetTexture(fileNames[0]);
+                var sprite = GetSprite(texture);
+                var name = imageFolder.Split("\\").Last().ToLower();
+                images.Add(name, sprite);
             }
 
-            return images.ToArray();
-        }
-
-        [CanBeNull]
-        ImageData GetImage(string imageFolder)
-        {
-            var imageFileNames = Directory.GetFiles(imageFolder, "*.png");
-            var textFileNames = Directory.GetFiles(imageFolder, "*.txt");
-
-            if (imageFileNames.Length == 0) return null;
-
-            var texture = GetTexture(imageFileNames[0]);
-            var sprite = GetSprite(texture);
-
-            var patterns = textFileNames.Length > 0 ? GetPatterns(textFileNames[0]) : new HashSet<string>();
-            var name = imageFolder.Split("\\").Last().ToLower();
-            patterns.Add($"{UserStartPattern}{name}");
-
-            var data = new ImageData
-            {
-                Pattern = @"\b(" + string.Join("|", patterns) + @")\b[\s.,!?]*",
-                Sprite = sprite
-            };
-            return data;
-        }
-
-        HashSet<string> GetPatterns(string textPath)
-        {
-            var textData = File.ReadAllText(textPath);
-            var patterns = new HashSet<string>(textData.Split(",").Select(s => $"{UserStartPattern}{s.Trim().ToLower()}"));
-            return patterns;
+            return images;
         }
 
         Texture2D GetTexture(string imagePath)

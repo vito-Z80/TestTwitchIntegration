@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Data;
 using UnityEngine;
 
@@ -19,7 +20,8 @@ namespace Avatars
         {
             return m_avatars.GetValueOrDefault(avatarName, null);
         }
-        
+
+        public string[] GetAvatarNames() => m_avatars.Keys.ToArray();
         public Texture2D GetAvatarTexture() => m_localAvatarCollection.GetAtlas();
         public Sprite[] GetSprites() => m_localAvatarCollection.GetSprites();
     }

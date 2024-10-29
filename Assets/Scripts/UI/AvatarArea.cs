@@ -1,5 +1,7 @@
-﻿using Data;
+﻿using System;
+using Data;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.U2D;
 
 namespace UI
@@ -50,9 +52,28 @@ namespace UI
             }
         }
 
+
+        void OnMouseOver()
+        {
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                m_.SetDefaultCursor();
+            }
+            else
+            {
+                m_.SetDragCursor();
+            }
+        }
+
+        void OnMouseExit()
+        {
+            m_.SetDefaultCursor();
+        }
+
         void Drag()
         {
-            if (Input.GetMouseButtonDown(0))
+            
+            if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
             {
                 m_startDragPosition = GetCursorPosition();
                 m_lastMousePosition = m_startDragPosition;

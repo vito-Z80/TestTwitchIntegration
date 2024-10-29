@@ -10,14 +10,22 @@ public class Core : MonoBehaviour
     [SerializeField] ConnectPanel connectPanel;
 
     AppSettingsData m_settings;
-    [SerializeField] GameObject menu;
+    [SerializeField] GameObject userInterface;
     [SerializeField] GameObject avatarArea;
+    
+    
+    [Header("Cursor")]
+    [SerializeField] Texture2D arrowCursor;
+    [SerializeField] Texture2D handCursor;
     Connect m_connect;
 
     Camera m_camera;
 
     Vector2Int m_windowSize;
     Vector2 m_worldSize;
+
+    Vector2 m_defaultCursorPivot;
+    Vector2 m_handCursorPivot;
     
     public static Core Instance { get; private set; }
 
@@ -31,6 +39,8 @@ public class Core : MonoBehaviour
         m_settings = LocalStorage.GetSettings();
         ChangeCameraPpu(m_settings.cameraPpu);
         m_camera = pixelPerfectCamera.GetComponent<Camera>();
+        m_defaultCursorPivot = new Vector2(0.185050011f, 0.964990616f);
+        m_handCursorPivot = new Vector2(0.418897033f, 0.92038399f);
         if (Instance != null && Instance != this)
         {
             Destroy(this);
@@ -89,6 +99,7 @@ public class Core : MonoBehaviour
 
     void OnApplicationQuit()
     {
+        SetDefaultCursor();
         LocalStorage.SaveSettings();
         Log.SaveLog();
         m_connect.OnApplicationQuit();
@@ -114,10 +125,22 @@ public class Core : MonoBehaviour
     {
         pixelPerfectCamera.pixelSnapping = isPixelSnap;
     }
+    
+    public  void SetDefaultCursor()
+    {
+        // if (arrowCursor != null)
+        //     Cursor.SetCursor(arrowCursor, m_defaultCursorPivot, CursorMode.Auto);
+    }
+
+    public  void SetDragCursor()
+    {
+        // if (handCursor != null)
+        //     Cursor.SetCursor(handCursor, m_handCursorPivot, CursorMode.Auto);
+    }
 
     void OnApplicationFocus(bool hasFocus)
     {
-        menu.SetActive(hasFocus);
+        userInterface.SetActive(hasFocus);
         avatarArea.SetActive(hasFocus);
     }
 }

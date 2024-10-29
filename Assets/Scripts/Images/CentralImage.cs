@@ -1,6 +1,4 @@
 ﻿using System.Collections;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,23 +10,21 @@ namespace Images
         [SerializeField] Sprite testSprite;
 
         Image m_image;
-        bool m_isShowed;
+        bool m_isShowing;
 
         AppSettingsData m_settings;
 
         void Start()
         {
             m_settings = LocalStorage.GetSettings();
-            transform.position = Vector3.one * 10000;
             m_image = GetComponentInChildren<Image>();
+            m_image.gameObject.SetActive(false);
         }
 
-        public async Task Show(string message, ImageData[] imageData)
+        public void Show(Sprite sprite)
         {
-            if (m_isShowed) return;
-            var sprite = await ParseMessage(message, imageData);
-            if (sprite is null) return;
-            m_isShowed = true;
+            if (m_isShowing) return;
+            m_isShowing = true;
             ImageSizeCalculate();
             m_image.sprite = sprite;
             StartCoroutine(ShowImage());
@@ -44,32 +40,24 @@ namespace Images
             m_image.rectTransform.localScale = scale;
         }
 
-        Task<Sprite> ParseMessage(string message, ImageData[] imageData)
-        {
-            foreach (var data in imageData)
-            {
-                var regex = new Regex(data.Pattern, RegexOptions.IgnoreCase);
-                var coincidence = regex.IsMatch(message);
-                if (coincidence)
-                {
-                    return Task.FromResult(data.Sprite);
-                }
-            }
-
-            return Task.FromResult<Sprite>(null);
-        }
-
-
         IEnumerator ShowImage()
         {
-            transform.localPosition = Vector3.zero;
+            m_image.gameObject.SetActive(true);
             yield return new WaitForSeconds(3.0f);
-            transform.localPosition = Vector3.one * 10000;
+            m_image.gameObject.SetActive(false);
             m_image.sprite = null;
-            m_isShowed = false;
+            m_isShowing = false;
             yield return null;
         }
 
+
+        void Update()
+        {
+            var halfScale = m_settings.imageScale * m_settings.windowHeight * 0.5f;
+            var posX = -m_settings.windowWidth * 0.5f +  halfScale + m_settings.imageX * m_settings.windowWidth;
+            var posY = -m_settings.windowHeight * 0.5f +  halfScale + m_settings.imageY * m_settings.windowHeight;
+            transform.localPosition = new Vector3(posX, posY, 0.0f);
+        }
 
         public void ScaleImage(float scale)
         {
@@ -80,14 +68,17 @@ namespace Images
         {
             if (isShowed)
             {
+                m_image.gameObject.SetActive(true);
                 ImageSizeCalculate();
                 m_image.sprite = testSprite;
-                transform.localPosition = Vector3.zero;
+                var posX = m_settings.imageX * m_settings.windowWidth + m_settings.windowWidth / 2.0f;
+                var posY = m_settings.imageY * m_settings.windowHeight + m_settings.windowHeight / 2.0f;
+                transform.localPosition = new Vector3(posX, transform.localPosition.y, 0.0f);
             }
             else
             {
                 m_image.sprite = null;
-                transform.localPosition = Vector3.one * 10000;
+                m_image.gameObject.SetActive(false);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Data;
 using Twitch;
 using UI;
@@ -32,6 +33,13 @@ namespace Avatars
             m_avatarsStorage = new AvatarsStorage();
             m_avatarsStorage.Init();
             m_sprites = m_avatarsStorage.GetSprites();
+        }
+
+
+        public string[] GetAvatarNames() => m_avatarsStorage.GetAvatarNames();
+        
+        void OnEnable()
+        {
             TwitchChatController.OnAvatarStarted += StartAvatar;
             TwitchChatController.OnAvatarPursuit += PursuitAvatar;
         }
@@ -133,6 +141,7 @@ namespace Avatars
         void OnDestroy()
         {
             TwitchChatController.OnAvatarStarted -= StartAvatar;
+            TwitchChatController.OnAvatarPursuit -= PursuitAvatar;
         }
     }
 }

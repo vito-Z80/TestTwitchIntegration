@@ -1,4 +1,5 @@
-﻿using Data;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Twitch;
 using UnityEngine;
 
@@ -8,34 +9,41 @@ namespace Images
     {
         LocalImageCollection m_localImageCollection;
 
+        Dictionary<string, Sprite> m_images;
         CentralImage m_centralImage;
-        ImageData[] m_imageData;
 
 
         void OnEnable()
         {
-            TwitchChatController.OnMessageSend += ShowImage;
+            TwitchChatController.OnImageShown += ShowImage;
         }
-
+        
         void Start()
         {
             m_localImageCollection = new LocalImageCollection();
-            m_imageData = m_localImageCollection.GetImages();
+            m_images = m_localImageCollection.GetImages();
             m_centralImage = GetComponentInChildren<CentralImage>();
+            Debug.Log(string.Join(",", m_images.Keys));
         }
 
-        async void ShowImage(string message)
+
+
+        public Dictionary<string, Sprite>.KeyCollection GetImageNames() => m_images.Keys;
+        
+        void ShowImage(string imageName)
         {
-            if (m_centralImage is not null && m_imageData is not null && m_imageData.Length > 0)
+            Debug.Log(imageName);
+            if (m_images.TryGetValue(imageName, out var sprite))
             {
-                await m_centralImage.Show(message, m_imageData);    
+                
+                m_centralImage.Show(sprite);
             }
         }
 
 
         void OnDisable()
         {
-            TwitchChatController.OnMessageSend -= ShowImage;
+            TwitchChatController.OnImageShown -= ShowImage;
         }
     }
 }

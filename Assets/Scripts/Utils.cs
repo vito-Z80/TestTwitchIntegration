@@ -22,4 +22,12 @@ public static class Utils
 
         return new Vector2(offscreenRTWidth, offscreenRTHeight);
     }
+    
+    public static string GetHexColor(Color color)
+    {
+        var r = ((int)(color.r * 255)).ToString("X2");
+        var g = ((int)(color.g * 255)).ToString("X2");
+        var b = ((int)(color.b * 255)).ToString("X2");
+        return "#" + r + g + b;
+    }
 }

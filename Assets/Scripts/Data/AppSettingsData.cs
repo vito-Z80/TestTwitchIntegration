@@ -12,6 +12,9 @@ namespace Data
         
         [JsonProperty("as")] public float avatarsSpeed = 0.3f; //  0-1
         
+        
+        [JsonProperty("ix")] public float imageX = 0.0f;    //  0-1
+        [JsonProperty("iy")] public float imageY = 0.0f;    //  0-1
         [JsonProperty("iw")] public float imageScale = 1.0f; //  0-1
         
         [JsonProperty("ws")] public int cameraPpu = 13; //  1-24
@@ -20,5 +23,8 @@ namespace Data
 
         [JsonProperty("ps")] public bool pixelSnapping;
         [JsonProperty("r")] public bool randomSpeedEnabled;
+        
+        [JsonProperty("at")] public string avatarNameTag = "!";
+        [JsonProperty("it")] public string imageNameTag = "!";
     }
 }

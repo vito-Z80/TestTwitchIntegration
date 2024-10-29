@@ -4,7 +4,7 @@ namespace Data
 {
     public class ImageData
     {
-        public string Pattern;
+        public string Name;
         public Sprite Sprite;
     }
 }
