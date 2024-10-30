@@ -11,6 +11,7 @@ namespace Data
         public bool IsModerator;
         public bool IsSubscriber;
         public bool IsReturningChatter;
+        public bool IsWip;
 
         public bool DidSayHello = false;
     }

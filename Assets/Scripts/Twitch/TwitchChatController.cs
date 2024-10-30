@@ -45,6 +45,9 @@ namespace Twitch
         {
             // var userName = await PullByPattern(message, UserChatNamePattern);
 
+            
+            //  TODO разбить полученное сообщение на теги и само сообщение. можно стплитнуть через PRIVMSG
+            //  TODO clear playerRefs for oAuth2
 
             m_settings ??= LocalStorage.GetSettings();
             
@@ -60,7 +63,7 @@ namespace Twitch
             {
                 if (m_settings.useAvatars)
                 {
-                    await AttackUser(userName, message);
+                    await AttackUser(userName, messageParts);
                     await StartAvatar(userName, message);   
                 }
 
@@ -122,7 +125,7 @@ namespace Twitch
             var imageName = await PullByPattern(startOfChatMessage, tag);
             if (imageName != null)
             {
-                OnImageShown?.Invoke(imageName);
+                OnImageShown?.Invoke(imageName.ToLower());
             }
         }
 
@@ -145,18 +148,27 @@ namespace Twitch
             var tag = $@"{Regex.Escape(LocalStorage.GetSettings().avatarNameTag)}{NamePattern}";
             var startOfChatMessage = message.Split(":").Last();
             var avatarName = await PullByPattern(startOfChatMessage, tag);
+            Debug.Log(tag);
+            Debug.Log(startOfChatMessage);
+            Debug.Log(avatarName);
             if (avatarName != null)
             {
-                OnAvatarStarted?.Invoke(userData, avatarName);
+                OnAvatarStarted?.Invoke(userData, avatarName.ToLower());
             }
         }
 
-        Task AttackUser(string userName, string message)
+        Task AttackUser(string userName, string[] message)
         {
-            var match = Regex.Match(message, AttackPattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            var part = message.FirstOrDefault(s => s.Contains("_attack"));
+            if (part == null) return Task.CompletedTask;;
+            var match = Regex.Match(part, AttackPattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
             if (match.Success)
             {
                 var targetName = match.Groups[1].Value;
+                Debug.Log(part);
+                Debug.Log(userName);
+                Debug.Log(targetName);      //  target name with @
                 OnAvatarPursuit?.Invoke(userName, targetName);
             }
 

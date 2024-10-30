@@ -2,6 +2,7 @@ using Data;
 using Twitch;
 using UI;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.U2D;
 
 public class Core : MonoBehaviour
@@ -12,11 +13,13 @@ public class Core : MonoBehaviour
     AppSettingsData m_settings;
     [SerializeField] GameObject userInterface;
     [SerializeField] GameObject avatarArea;
+    [SerializeField] GameObject masterVolume;
     
     
     [Header("Cursor")]
     [SerializeField] Texture2D arrowCursor;
     [SerializeField] Texture2D handCursor;
+    
     Connect m_connect;
 
     Camera m_camera;
@@ -26,6 +29,7 @@ public class Core : MonoBehaviour
 
     Vector2 m_defaultCursorPivot;
     Vector2 m_handCursorPivot;
+    
     
     public static Core Instance { get; private set; }
 
@@ -140,5 +144,6 @@ public class Core : MonoBehaviour
     {
         userInterface.SetActive(hasFocus);
         avatarArea.SetActive(hasFocus);
+        masterVolume.SetActive(hasFocus);
     }
 }

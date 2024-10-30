@@ -17,6 +17,8 @@ namespace Data
         [JsonProperty("iy")] public float imageY = 0.0f;    //  0-1
         [JsonProperty("iw")] public float imageScale = 1.0f; //  0-1
         
+        [JsonProperty("mv")] public float masterVolume = 0.5f;
+        
         [JsonProperty("ws")] public int cameraPpu = 13; //  1-24
         [JsonProperty("ww")] public int windowWidth = 640; //  pixel
         [JsonProperty("wh")] public int windowHeight = 360; //  pixel
