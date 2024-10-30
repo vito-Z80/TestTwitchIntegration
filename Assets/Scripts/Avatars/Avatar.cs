@@ -73,6 +73,8 @@ namespace Avatars
 
         public void Init(PixelPerfectCamera pixelPerfectCamera, string avatarName, AvatarsController avatarsController, Dictionary<AvatarState, int[]> avatarIndices)
         {
+            m_currentFrame = 0;
+            SetState();
             randomSpeed = 1.0f;
             m_iFree = false;
             m_avatars = avatarIndices;
@@ -246,6 +248,7 @@ namespace Avatars
 
         void SetState()
         {
+            
             if (transform.position.x > m_lastPosition.x)
             {
                 m_currentState = AvatarState.Right;
@@ -256,7 +259,14 @@ namespace Avatars
             }
             else
             {
-                m_currentState = AvatarState.Idle;
+                if (m_avatars.TryGetValue(AvatarState.Idle, out var idle))
+                {
+                    m_currentState = AvatarState.Idle;
+                }
+                else
+                {
+                    m_currentState = AvatarState.Left;
+                }
             }
         }
 

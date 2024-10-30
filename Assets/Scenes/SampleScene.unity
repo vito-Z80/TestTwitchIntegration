@@ -9940,6 +9940,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DraggableBar
       objectReference: {fileID: 0}
+    - target: {fileID: 1425466028120362806, guid: 10b690f2560852c498366fcc8c307314, type: 3}
+      propertyPath: m_Text
+      value: Avatar area settings
+      objectReference: {fileID: 0}
     - target: {fileID: 2635773537247211013, guid: 10b690f2560852c498366fcc8c307314, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
