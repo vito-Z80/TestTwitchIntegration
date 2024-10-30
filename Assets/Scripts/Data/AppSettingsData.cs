@@ -23,6 +23,14 @@ namespace Data
 
         [JsonProperty("ps")] public bool pixelSnapping;
         [JsonProperty("r")] public bool randomSpeedEnabled;
+
+        [JsonProperty("so")] public bool avatarSubscribersOnly;
+        [JsonProperty("nc")] public bool displayNicknameColor = true;
+        
+        [JsonProperty("ua")] public bool useAvatars = true;
+        [JsonProperty("ui")] public bool useImages = true;
+        
+        [JsonProperty("cw")] public bool canBeWelcomed = true;
         
         [JsonProperty("at")] public string avatarNameTag = "*";
         [JsonProperty("it")] public string imageNameTag = "!";

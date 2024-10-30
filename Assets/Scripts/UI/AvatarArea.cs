@@ -1,5 +1,6 @@
 ﻿using System;
 using Data;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
@@ -31,8 +32,8 @@ namespace UI
             m_pixelPerfectCamera = m_.Ppc;
             m_camera = m_.Camera;
             var pos = new Vector3(
-                (m_settings.areaPosX - 0.5f + m_settings.avatarAreaWidth / 2.0f) * m_.WorldSize.x ,
-                (m_settings.areaPosY - 0.5f + m_settings.avatarAreaHeight / 2.0f) * m_.WorldSize.y ,
+                (m_settings.areaPosX - 0.5f + m_settings.avatarAreaWidth / 2.0f) * m_.WorldSize.x,
+                (m_settings.areaPosY - 0.5f + m_settings.avatarAreaHeight / 2.0f) * m_.WorldSize.y,
                 0.0f);
             transform.position = pos;
             ChangeAvatarAreaWidth();
@@ -46,6 +47,12 @@ namespace UI
             if (m_offsetDragPosition != Vector3.zero)
             {
                 FitScreen(m_spriteRenderer.bounds, transform.position += m_offsetDragPosition);
+            }
+
+            //  TODO убрать отсюда. Это переключает возможность приветствия чатерса. Пока хз куда вывести UI для этого.
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.H))
+            {
+                m_settings.canBeWelcomed = !m_settings.canBeWelcomed;
             }
         }
 
@@ -69,7 +76,6 @@ namespace UI
 
         void Drag()
         {
-            
             if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
             {
                 m_startDragPosition = GetCursorPosition();

@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using Data;
+using TMPro;
 using UnityEngine;
 using Avatar = Avatars.Avatar;
 
@@ -17,13 +18,14 @@ namespace UI
             transform.SetAsFirstSibling();
         }
 
-        public void SetTargetAvatar(Avatar targetAvatar, Canvas canvas, Camera camera, string userName)
+        public void SetTargetAvatar(Avatar targetAvatar, Canvas canvas, Camera camera, ChatUserData userData)
         {
             m_camera = camera;
             m_canvas = canvas;
             m_avatar = targetAvatar;
             m_userName ??= GetComponent<TextMeshProUGUI>();
-            m_userName.text = userName.Replace("@", "");
+            m_userName.text = userData.UserName.Replace("@", "");
+            m_userName.color = userData.Color;
         }
 
 
@@ -41,6 +43,7 @@ namespace UI
                 transform.position = Vector3.up * 10000.0f;
                 return;
             }
+
             var avatarWidth = avatarSprite.bounds.size.y;
             var avatarPosition = m_avatar.transform.position;
             avatarPosition.y += avatarWidth;

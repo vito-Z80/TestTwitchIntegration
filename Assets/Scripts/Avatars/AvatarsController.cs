@@ -4,6 +4,7 @@ using System.Linq;
 using Data;
 using Twitch;
 using UI;
+using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.U2D;
 using Random = UnityEngine.Random;
@@ -37,7 +38,7 @@ namespace Avatars
 
 
         public string[] GetAvatarNames() => m_avatarsStorage.GetAvatarNames();
-        
+
         void OnEnable()
         {
             TwitchChatController.OnAvatarStarted += StartAvatar;
@@ -62,12 +63,13 @@ namespace Avatars
                 }
             }
         }
-        
 
-        void StartAvatar(string userName, string avatarName)
+
+        void StartAvatar(ChatUserData userData, string avatarName)
         {
             // TODO пул аватаров...
 
+            var userName = userData.UserName;
             if (m_avatars.TryGetValue(userName, out var existingAvatar))
             {
                 if (existingAvatar.avatarName == avatarName) return;
@@ -75,14 +77,14 @@ namespace Avatars
                 if (avatarIndices != null)
                 {
                     m_avatars[userName].Init(m_pixelPerfectCamera, avatarName, this, avatarIndices);
-                    m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userName);
+                    m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userData);
                 }
             }
             else
             {
                 if (CreateAvatar(userName, avatarName, Vector3.zero))
                 {
-                    CreateUserName(userName);
+                    CreateUserName(userData);
                 }
             }
         }
@@ -101,13 +103,13 @@ namespace Avatars
             return false;
         }
 
-        void CreateUserName(string userName)
+        void CreateUserName(ChatUserData userData)
         {
-            var hisAvatar = m_avatars[userName];
+            var hisAvatar = m_avatars[userData.UserName];
             var avatarPosition = m_camera.WorldToScreenPoint(hisAvatar.transform.position);
             var un = Instantiate(userNamePrefab, avatarPosition, Quaternion.identity, canvas.transform).GetComponent<UserName>();
-            un.SetTargetAvatar(hisAvatar, canvas, m_camera, userName);
-            m_names[userName] = un;
+            un.SetTargetAvatar(hisAvatar, canvas, m_camera, userData);
+            m_names[userData.UserName] = un;
         }
 
         public void ShowTest(bool isTest)
@@ -116,7 +118,18 @@ namespace Avatars
             {
                 for (var i = 0; i < 20; i++)
                 {
-                    StartAvatar($"testName_{i}", "toad");
+                    
+                    var testUserData = new ChatUserData
+                    {
+                        UserName = $"test_name_{i}",
+                        Color = Color.white,
+                        IsModerator = false,
+                        IsSubscriber = false,
+                        IsFirstMessage = false,
+                        IsReturningChatter = true,
+                    };
+                    
+                    StartAvatar(testUserData, "toad");
                 }
             }
             else

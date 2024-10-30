@@ -2,7 +2,6 @@
 using System.Text;
 using System.Threading.Tasks;
 using NativeWebSocket;
-using UnityEngine;
 
 namespace Twitch
 {
@@ -13,9 +12,9 @@ namespace Twitch
         WebSocket m_websocket;
         TwitchChatController m_twitchChatController;
         TwitchOAuth m_twitchOAuth;
-        
-        const string PrivateMessage = "PRIVMSG";
-        
+
+        // const string PrivateMessage = "PRIVMSG";
+
         public static Action<bool> OnConnectPanelVisible;
 
         public async Task Connect(TwitchOAuth oAuth, string userName, string channelName)
@@ -37,21 +36,20 @@ namespace Twitch
             m_websocket.OnClose += ChatClosed;
             await m_websocket.Connect();
         }
-        
+
         //  вебсокет считает соединение не активным через некоторое время, нужно отправлять ему сообщение, что бы избежать отключения. 
-        private async Task SendPing()
+        async Task SendPing()
         {
             while (m_websocket != null && m_websocket.State == WebSocketState.Open)
             {
                 SendCommand("PING :tmi.twitch.tv");
                 Log.LogMessage("Отправлен PING");
-                await Task.Delay(550000); 
+                await Task.Delay(550000);
             }
         }
 
         void ChatClosed(WebSocketCloseCode closeCode)
         {
-            
             Log.LogMessage("Соединение закрыто: " + closeCode);
         }
 
@@ -70,17 +68,22 @@ namespace Twitch
 
         async void GetChatMessage(byte[] bytes)
         {
-            var message = Encoding.UTF8.GetString(bytes);
-            if (message.Contains(PrivateMessage))
+            try
             {
+                var message = Encoding.UTF8.GetString(bytes);
                 Log.LogMessage($"Сообщение из чата: {message}");
-                await m_twitchChatController.ProcessMessage(message.ToLower());
+                await m_twitchChatController.ProcessMessage(message);
+            }
+            catch (Exception e)
+            {
+                Log.LogMessage($"Не удалось получить последнее сообщение из чата. {e.Message}");
             }
         }
 
-
         private void Authenticate()
         {
+            // Включаем режим тегов для получения метаданных
+            SendCommand("CAP REQ :twitch.tv/tags");
             // Отправляем команды для аутентификации.
             SendCommand($"PASS oauth:{m_twitchOAuth.AuthorizationTokenData.access_token}");
             SendCommand($"NICK {m_userName}");
