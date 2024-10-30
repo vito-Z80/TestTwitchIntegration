@@ -97,6 +97,7 @@ To add an avatar:
 3. Your application will now have a Client ID and a Secret Key, which are required for authentication.
 
 4. Fill in the fields in the application with the obtained data.
+
 ![Authorization Example](Assets/Images/auth.PNG)
 
 - The secret key is required once the authorization token expires (approximately every 4 hours).
