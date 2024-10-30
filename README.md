@@ -1,55 +1,42 @@
-# Twitch Chat Visualization App
+# Twitch Chat Avatar Visualizer
 
-## Overview
+**IMPORTANT:** The Twitch platform requires token reauthorization every 4 hours. You will need to re-enter your Twitch secret key when prompted. A browser window with a reauthorization code will open to facilitate token renewal — **make sure this browser window does not appear on your stream!**
 
-This application allows users to interact with Twitch chat in unique ways by visualizing avatars, displaying images, and sending custom greetings.
+## About the Application
 
-## Features
+This application allows you to integrate avatars, images, and visual greetings directly from the Twitch chat. Users can display their avatars, call images, and send greetings, all controlled through chat commands.
 
-- **Visualize chat users** with a command.
-- **Display images** on the screen with a chat command.
-- **Greet users** through custom greetings.
-- **Avatar-based interactions**, including attacks between user avatars.
+### Key Features:
+- **Display user avatars.**
+- **Show images on the screen.**
+- **Visualize greetings from chat.**
 
-## Commands (Case Insensitive)
+## Adding Avatars and Images
 
-### Visualize a Chat User:
-- `'_i_name'` - Displays the avatar of a user, where `'name'` is the avatar name.
-    - Avatar name corresponds to the folder name in `StreamingAssets/Graphics/Avatars/`.
-    - Example: If a folder named `SuperMan` exists, entering `_i_superman` in chat will display the avatar with the nickname of the chat user who entered the command.
+### Images
+To add an image:
+1. Place a `.png` file in `\TwitchAvatars_Data\StreamingAssets\Graphics\Images\`.
+2. Create a folder named after the image, then place the image inside.
+3. To call the image from chat, use the command: `TAGimageName`, where:
+  - **TAG** — the chat tag set for images.
+  - **imageName** — the folder name (case-insensitive).
 
-### Display an Image:
-- `'_name'` - Displays an image at the center of the screen, where `'name'` is the image name.
-    - Image name corresponds to the folder name in `StreamingAssets/Graphics/Images/`.
-    - Example: If a folder named `SuperMan` exists, entering `_superman` in chat will display the image.
-    - The folder can also contain a `.txt` file listing additional commands for the image.
-
-### User Greetings:
-- Users can greet others with commands like:
-> hello|hi|hey|good\s(morning|afternoon|evening)|ку|драсте|драсти|дратути|дратуте|дароу|привет(ы)|халоу|драсть|драсьте|здарова|сдарова|привет|здравствуй(те)?|добрый\s(день|утро|вечер)
-- Each user can greet only once until the next application restart.
-
-### Attack:
-- `_attack @userName` - Allows a user's avatar to attack another user's avatar if both have avatars set up.
-
-## Adding Custom Avatars
-
-Users can add custom avatar sprites to the directory: `StreamingAssets/Graphics/Avatars/`.
-- The folder name becomes the avatar's name.
-- Up to four subfolders can be added inside each avatar's folder:
-- `left`, `right`, `attack`, `idle` - Each folder should contain the respective avatar sprites.
-
-### Subfolder Behavior:
+### Avatars
+To add an avatar:
+1. Place the avatar files in `\TwitchAvatars_Data\StreamingAssets\Graphics\Avatars\`.
+2. Create a folder for the avatar name, and if available, add subfolders for animation states:
 - **`idle`**: Allows the avatar to move around the screen with small pauses.
 - **`left`**: Animation for the avatar moving left. If `right` is not present, the application will generate a mirrored animation.
 - **`right`**: Animation for the avatar moving right. If `left` is not present, the application will generate a mirrored animation.
 - **`attack`**: Animation for the avatar's attack.
+#### Subfolder Behavior:
+
 
 > **Note:**
 > - If the `attack` folder exists, both `left` and `right` cannot exist together.
 > - If the `attack` folder does not exist, `left` and `right` can be used as separate animations for movement.
 
-### Folder Variations:
+#### Folder Variations:
 - `idle`
 - `left`
 - `right`
@@ -60,22 +47,56 @@ Users can add custom avatar sprites to the directory: `StreamingAssets/Graphics/
 - `left`, `right`
 - `idle`, `left`, `attack`
 - `idle`, `right`, `attack`
+
+3. To call or change an avatar from chat, use the command: `TAGavatarName`, where:
+  - **TAG** — the chat tag set for avatars.
+  - **avatarName** — the folder name (case-insensitive).
+
+### User Greetings:
+- Users can greet others with commands like:
+> hello|hi|hey|good\s(morning|afternoon|evening)|ку|драсте|драсти|дратути|дратуте|дароу|привет(ы)|халоу|драсть|драсьте|здарова|сдарова|привет|здравствуй(те)?|добрый\s(день|утро|вечер)
+- Each user can greet only once until the next application restart.
+
+## Main Menu
+
+- **Resolution** — select the window size that best fits your stream.
+- **Avatar Area** — configure the avatar display area.
+- **Image** — adjust image display settings.
+- **Commands** — show available chat commands.
+- **Show/Hide** — toggle UI visibility (for testing).
+
+## Settings
+
+### Avatar Display
+- **X, Y, Width, Height** — position and dimensions of the avatar movement area.
+- **Speed** — base speed of avatar movement.
+- **✅Random** — random variation added to the base speed of each avatar.
+- **Avatars Scale** — adjust avatar scale on the screen.
+- **Chat TAG** — tag for calling or changing avatars in chat.
+- **✅Subscribes Only** — restrict commands to subscribers only.
+- **✅Displayed Nickname Color** — show chat nickname color.
+- **✅Use** — enable display on stream.
+
+### Image Display
+- **X, Y, Size** — position and size of the displayed image.
+- **Chat TAG** — tag for calling images in chat.
+- **✅Use** — enable display on stream.
+
 ---
 ## Connecting the Application to Twitch via Two-Factor Authentication
 
 1. Go to [Twitch Developer Console](https://dev.twitch.tv/console).
 2. Register a new application:
 - Fill out the following fields:
-    - Application Name
-    - OAuth Redirect URL: Use `http://localhost` or `http://localhost:8080`
-    - Category: Game Integration
-    - Client Type: Confidential
+  - Application Name
+  - OAuth Redirect URL: Use `http://localhost` or `http://localhost:8080`
+  - Category: Game Integration
+  - Client Type: Confidential
 - Click "Create".
 
 3. Your application will now have a Client ID and a Secret Key, which are required for authentication.
 
 4. Fill in the fields in the application with the obtained data.
-
 ![Authorization Example](Assets/Images/auth.PNG)
 
 - The secret key is required once the authorization token expires (approximately every 4 hours).
@@ -94,3 +115,16 @@ Users can add custom avatar sprites to the directory: `StreamingAssets/Graphics/
 4. ✅ **Allow transparency**
 
 ---
+
+## Stream Convenience Features
+
+The application automatically hides UI elements when focus is lost, ensuring a clean display for streaming. You can also minimize the application to save screen space while maintaining chat functionality and visual display.
+
+--- 
+![Authorization Example](Assets/Images/screen_01.PNG)
+![Authorization Example](Assets/Images/screen_02.PNG)
+---
+
+Enjoy adding real-time interactivity to your Twitch stream!
+
+
