@@ -5,24 +5,20 @@ using UnityEngine;
 
 namespace Avatars
 {
-    public class AvatarsStorage
+    public static class AvatarsStorage
     {
-        Dictionary<string, Dictionary<AvatarState, int[]>> m_avatars = new();
-        LocalAvatarCollection m_localAvatarCollection;
+        static readonly LocalAvatarCollection LocalAvatarCollection= new LocalAvatarCollection();
+        static readonly Dictionary<string,  AvatarData> Avatars = LocalAvatarCollection.GenerateAvatars();
 
-        internal void Init()
+       
+
+        public static AvatarData GetAvatarData(string avatarName)
         {
-            m_localAvatarCollection = new LocalAvatarCollection();
-            m_avatars = m_localAvatarCollection.GenerateAvatars();
+            return Avatars.GetValueOrDefault(avatarName, null);
         }
 
-        public Dictionary<AvatarState, int[]> GetAvatar(string avatarName)
-        {
-            return m_avatars.GetValueOrDefault(avatarName, null);
-        }
-
-        public string[] GetAvatarNames() => m_avatars.Keys.ToArray();
-        public Texture2D GetAvatarTexture() => m_localAvatarCollection.GetAtlas();
-        public Sprite[] GetSprites() => m_localAvatarCollection.GetSprites();
+        public static string[] GetAvatarNames() => Avatars.Keys.ToArray();
+        // public Texture2D GetAvatarTexture() => m_localAvatarCollection.GetAtlas();
+        public static Sprite[] GetSprites() => LocalAvatarCollection.GetSprites();
     }
 }

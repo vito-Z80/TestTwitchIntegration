@@ -15,13 +15,13 @@ namespace Avatars
         readonly List<Texture2D> m_textures = new();
         int m_textureCounter;
 
-        public Dictionary<string, Dictionary<AvatarState, int[]>> GenerateAvatars()
+        public Dictionary<string, AvatarData> GenerateAvatars()
         {
             m_textureCounter = 0;
             var path = $"{Application.streamingAssetsPath}/{AvatarsFolder}";
 
             //  dict<avatarName, dict<state, indices>>; state = left, right, idle, attack...;  indices = uv region indices
-            Dictionary<string, Dictionary<AvatarState, int[]>> avatars = new Dictionary<string, Dictionary<AvatarState, int[]>>();
+            Dictionary<string, AvatarData> avatars = new Dictionary<string, AvatarData>();
             //  имена папок аватаров
             var avatarFolderPaths = Directory.GetDirectories(path);
             foreach (var avatarFolder in avatarFolderPaths)
@@ -30,16 +30,85 @@ namespace Avatars
                 if (avtar != null)
                 {
                     var avatarName = avatarFolder.Split("\\").Last().ToLower();
-                    avatars.Add(avatarName, avtar);
+                    var avatarData = new AvatarData
+                    {
+                        AvatarName = avatarName,
+                        Animations = avtar
+                    };
+                    avatars.Add(avatarName, avatarData);
                 }
             }
-            AddMissingTextures(m_textures, avatars);
+
+            //  add missing data
+            foreach (var avatar in avatars.Values)
+            {
+                var avatarStateKeys = avatar.Animations.Keys;
+                var keysFlag = (int)avatarStateKeys.Aggregate((acc, num) => acc | num);
+
+                switch (keysFlag)
+                {
+                    case 1: // need: right, left
+                    case 9: // need: right, left, атака как в случае 14 не зеркалится.
+                        CopyMissingAvatarData(avatar, AvatarState.Idle, AvatarState.Right);
+                        CopyMissingAvatarData(avatar, AvatarState.Idle, AvatarState.Left);
+                        break;
+                    case 2: //  need: right
+                    case 3: //  need: right
+                        CopyMissingAvatarData(avatar, AvatarState.Left, AvatarState.Right, true);
+                        break;
+                    case 4: //  need: left
+                    case 5: //  need: left
+                        CopyMissingAvatarData(avatar, AvatarState.Right, AvatarState.Left, true);
+                        break;
+                    case 6: //  skip
+                    case 7:
+                    case 14: // в этом случае атака не зеркалится. Допустим это массовая атака вызовом какой то магии. 
+                    case 15: // как и 14    
+                        break;
+                    case 8: // ignore в случаях когда анимация атаки только одна = уничтожить аватар.
+                        avatar.Animations.Remove(AvatarState.Attack);
+                        break;
+                    case 10: // need: attackLeft, attackRight, right
+                    case 11: // need: attackLeft, attackRight, right
+                        CopyMissingAvatarData(avatar, AvatarState.Attack, AvatarState.AttackLeft);
+                        CopyMissingAvatarData(avatar, AvatarState.Attack, AvatarState.AttackRight, true);
+                        CopyMissingAvatarData(avatar, AvatarState.Left, AvatarState.Right, true);
+                        avatar.Animations.Remove(AvatarState.Attack);
+                        break;
+                    case 12: // need: attackLeft, attackRight, left
+                    case 13: // need: attackLeft, attackRight, left
+                        CopyMissingAvatarData(avatar, AvatarState.Attack, AvatarState.AttackLeft, true);
+                        CopyMissingAvatarData(avatar, AvatarState.Attack, AvatarState.AttackRight);
+                        CopyMissingAvatarData(avatar, AvatarState.Right, AvatarState.Left, true);
+                        avatar.Animations.Remove(AvatarState.Attack);
+                        break;
+                }
+            }
+
+
+            // AddMissingTextures(m_textures, avatars);
 
             m_avatarsAtlas = new AvatarsAtlas();
             m_avatarsAtlas.GenerateAtlas(m_textures);
             return avatars;
         }
 
+        void CopyMissingAvatarData(AvatarData avatarData, AvatarState existingState, AvatarState newState, bool flipX = false)
+        {
+            var animations = new List<AvatarAnimationData>();
+            foreach (var existingAnimation in avatarData.Animations[existingState])
+            {
+                var animation = new AvatarAnimationData
+                {
+                    AnimationIndices = existingAnimation.AnimationIndices,
+                    FlipX = flipX,
+                    SubName = existingAnimation.SubName,
+                };
+                animations.Add(animation);
+            }
+
+            avatarData.Animations.Add(newState, animations.ToArray());
+        }
 
         void AddMissingTextures(List<Texture2D> textures, Dictionary<string, Dictionary<AvatarState, int[]>> avatars)
         {
@@ -57,6 +126,7 @@ namespace Avatars
                         indices.Add(counter);
                         counter++;
                     }
+
                     avatar.Add(AvatarState.Left, indices.ToArray());
 
                     //  add attack if exist
@@ -67,6 +137,7 @@ namespace Avatars
                         {
                             avatar.Add(AvatarState.AttackRight, rightAttackIndices);
                         }
+
                         //  create left attack
                         var leftAttackIndices = new List<int>();
                         foreach (var id in avatar[AvatarState.AttackRight])
@@ -76,6 +147,7 @@ namespace Avatars
                             leftAttackIndices.Add(counter);
                             counter++;
                         }
+
                         avatar.Add(AvatarState.AttackLeft, leftAttackIndices.ToArray());
                     }
                 }
@@ -92,7 +164,7 @@ namespace Avatars
                     }
 
                     avatar.Add(AvatarState.Right, indices.ToArray());
-                    
+
                     //  add attack if exist
                     if (avatar.ContainsKey(AvatarState.Attack))
                     {
@@ -101,6 +173,7 @@ namespace Avatars
                         {
                             avatar.Add(AvatarState.AttackLeft, leftAttackIndices);
                         }
+
                         //  create right attack
                         var rightAttackIndices = new List<int>();
                         foreach (var id in avatar[AvatarState.AttackLeft])
@@ -110,9 +183,9 @@ namespace Avatars
                             rightAttackIndices.Add(counter);
                             counter++;
                         }
+
                         avatar.Add(AvatarState.AttackRight, rightAttackIndices.ToArray());
                     }
-                    
                 }
 
                 if (avatar.ContainsKey(AvatarState.Idle) && !avatar.ContainsKey(AvatarState.Left))
@@ -140,43 +213,86 @@ namespace Avatars
             }
         }
 
+        void ProcessDirectory(string path, List<string> filesByDirectory)
+        {
+            filesByDirectory.Add(Path.GetFullPath(path));
+            foreach (var directory in Directory.GetDirectories(path))
+            {
+                ProcessDirectory(directory, filesByDirectory);
+            }
+        }
+
+
         public Texture2D GetAtlas() => m_avatarsAtlas.GetAtlasTexture();
         public Sprite[] GetSprites() => m_avatarsAtlas.GetSprites();
 
         [CanBeNull]
-        Dictionary<AvatarState, int[]> AvatarVariants(string[] folders)
+        Dictionary<AvatarState, AvatarAnimationData[]> AvatarVariants(string[] folders)
         {
-            var dict = new Dictionary<AvatarState, int[]>();
+            var dict = new Dictionary<AvatarState, AvatarAnimationData[]>();
 
-            //  имена папок вариантов одного спрайта (idle, left, right...)
+            var nestedFolders = new List<string>();
+            //  имена папок вариантов одной анимации (idle, left, right...)
             foreach (var folder in folders)
             {
-                var fileNames = Directory.GetFiles(folder, "*.png");
+                Debug.Log(folder);
+                nestedFolders.Clear();
+                ProcessDirectory(folder, nestedFolders);
 
-                var texIndices = new List<int>();
-                foreach (var filePath in fileNames)
+                foreach (var f in nestedFolders)
                 {
-                    var imageData = File.ReadAllBytes(filePath);
-                    var texture = new Texture2D(1, 1);
-
-                    texture.LoadImage(imageData);
-                    texture.minimumMipmapLevel = 0;
-                    texture.wrapMode = TextureWrapMode.Clamp;
-                    texture.filterMode = FilterMode.Point;
-                    m_textures.Add(texture);
-                    texIndices.Add(m_textureCounter);
-                    m_textureCounter++;
+                    Debug.Log(f);
                 }
 
-                if (texIndices.Count > 0)
+                var subAnimations = new List<AvatarAnimationData>();
+
+                foreach (var folderPath in nestedFolders)
                 {
-                    var avatarState = GetAvatarState(folder.Split("\\").Last());
-                    dict[avatarState] = texIndices.ToArray();
+                    var texIndices = new List<int>();
+                    CollectTexturesByPath(folderPath, texIndices);
+
+                    var defaultFolderName = folder.Split("\\").Last();
+                    var nestedFolderName = folderPath.Split("\\").Last();
+
+
+                    if (texIndices.Count > 0)
+                    {
+                        var aad = new AvatarAnimationData
+                        {
+                            AnimationIndices = texIndices.ToArray(),
+                            SubName = defaultFolderName == nestedFolderName ? "Default variant" : nestedFolderName,
+                        };
+                        subAnimations.Add(aad);
+                    }
+                }
+
+                if (subAnimations.Count > 0)
+                {
+                    dict.Add(GetAvatarState(folder.Split("\\").Last()), subAnimations.ToArray());
                 }
             }
 
             if (dict.Count == 0) return null;
             return dict;
+        }
+
+        void CollectTexturesByPath(string folderPath, List<int> texIndices)
+        {
+            var fileNames = Directory.GetFiles(folderPath, "*.png");
+
+            foreach (var fileName in fileNames)
+            {
+                var imageData = File.ReadAllBytes(fileName);
+                var texture = new Texture2D(1, 1);
+
+                texture.LoadImage(imageData);
+                texture.minimumMipmapLevel = 0;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                texture.filterMode = FilterMode.Point;
+                m_textures.Add(texture);
+                texIndices.Add(m_textureCounter);
+                m_textureCounter++;
+            }
         }
 
         Texture2D FlipTextureHorizontally(Texture2D original)

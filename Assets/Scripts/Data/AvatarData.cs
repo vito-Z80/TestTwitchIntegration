@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Data
@@ -7,18 +7,15 @@ namespace Data
     {
         [JsonProperty("n")] public string AvatarName;
         [JsonProperty("s")] public float Speed;
-        
         [JsonProperty("a")] public int Access = 0;
-
-        [JsonProperty("aa")] [CanBeNull] public AvatarAnimationData[] AttackAnimationsIndices;
-        [JsonProperty("ia")] [CanBeNull] public AvatarAnimationData[] IdleAnimationsIndices;
-        [JsonProperty("la")] [CanBeNull] public AvatarAnimationData[] LeftAnimationsIndices;
-        [JsonProperty("ra")] [CanBeNull] public AvatarAnimationData[] RightAnimationsIndices;
+        [JsonProperty("am")] public Dictionary<AvatarState, AvatarAnimationData[]> Animations;
     }
 
     public class AvatarAnimationData
     {
-        [JsonProperty("fps")] public float FramePerSecond;
+        [JsonProperty("f")] public bool FlipX;
+        [JsonProperty("ps")] public float FramePerSecond;
         [JsonProperty("ai")] public int[] AnimationIndices;
+        [JsonProperty("sn")] public string SubName;
     }
 }

@@ -15,12 +15,11 @@ namespace Avatars
         [SerializeField] GameObject userNamePrefab;
 
         readonly Dictionary<string, Avatar> m_avatars = new(); //  string:userName, Avatar:avatar
-        readonly Dictionary<string, UserName> m_names = new(); //  string:userName, Avatar:avatar
+        readonly Dictionary<string, UserName> m_names = new();
 
 
         PixelPerfectCamera m_pixelPerfectCamera;
         Camera m_camera;
-        AvatarsStorage m_avatarsStorage;
         Sprite[] m_sprites;
 
 
@@ -28,13 +27,11 @@ namespace Avatars
         {
             m_pixelPerfectCamera = Core.Instance.Ppc;
             m_camera = Core.Instance.Camera;
-            m_avatarsStorage = new AvatarsStorage();
-            m_avatarsStorage.Init();
-            m_sprites = m_avatarsStorage.GetSprites();
+            m_sprites = AvatarsStorage.GetSprites();
         }
 
 
-        public string[] GetAvatarNames() => m_avatarsStorage.GetAvatarNames();
+        public string[] GetAvatarNames() => AvatarsStorage.GetAvatarNames();
 
         void OnEnable()
         {
@@ -70,10 +67,10 @@ namespace Avatars
             if (m_avatars.TryGetValue(userName, out var existingAvatar))
             {
                 if (existingAvatar.avatarName == avatarName) return;
-                var avatarIndices = m_avatarsStorage.GetAvatar(avatarName);
-                if (avatarIndices != null)
+                var avatarData = AvatarsStorage.GetAvatarData(avatarName);
+                if (avatarData != null)
                 {
-                    m_avatars[userName].Init(m_pixelPerfectCamera, avatarName, this, avatarIndices);
+                    m_avatars[userName].Init(m_pixelPerfectCamera, avatarName, this, avatarData);
                     m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userData);
                 }
             }
@@ -88,11 +85,11 @@ namespace Avatars
 
         bool CreateAvatar(string userName, string avatarName, Vector3 position)
         {
-            var avatarIndices = m_avatarsStorage.GetAvatar(avatarName);
-            if (avatarIndices != null)
+            var avatarData = AvatarsStorage.GetAvatarData(avatarName);
+            if (avatarData != null)
             {
                 var newAvatar = Instantiate(avatarPrefab, position, Quaternion.identity, transform).GetComponent<Avatar>();
-                newAvatar.Init(m_pixelPerfectCamera, avatarName, this, avatarIndices);
+                newAvatar.Init(m_pixelPerfectCamera, avatarName, this, avatarData);
                 m_avatars[userName] = newAvatar;
                 return true;
             }
