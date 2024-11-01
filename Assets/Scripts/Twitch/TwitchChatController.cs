@@ -1,80 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Data;
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Twitch
 {
     public class TwitchChatController
     {
-        const string NamePattern = "([a-zA-Z0-9_-]+)";
-        const string UserChatNamePattern = @"(@[a-zA-Z0-9_-]+)\.tmi";
-        const string AttackPattern = @"_attack\s+(@[a-zA-Z0-9_-]+)";
-
-        const string PrivateMessage = "PRIVMSG";
-        const string DisplayName = "display-name";
-        const string FirstMessage = "first-msg";
-        const string Moderator = "mod";
-        const string ReturningChatter = "returning-chatter";
-        const string Subscriber = "subscriber";
-        const string UserType = "user-type";
-        const string UserColor = "color";
-
-        const string Zero = "0";
-
-        const string HelloPattern =
-            @"(?i)\b(hello|hi|hey|good\s(morning|afternoon|evening)|ку|драсте|драсти|дратути|дратуте|дароу|привет(ы)|халоу|драсть|драсьте|здарова|сдарова|привет|здравствуй(те)?|добрый\s(день|утро|вечер))\b";
-
-        // readonly List<string> m_pullNames = new();
         readonly Dictionary<string, ChatUserData> m_chatters = new();
-
 
         public static Action<ChatUserData, string> OnAvatarStarted;
         public static Action<string, string> OnAvatarPursuit;
-        public static Action<string> OnSayHello;
+        public static Action<ChatUserData> OnSayHello;
         public static event Action<string> OnImageShown;
 
+        readonly ChatTagParser m_parser = new();
 
         AppSettingsData m_settings;
-        
+
         public async Task ProcessMessage(string message)
         {
-            // var userName = await PullByPattern(message, UserChatNamePattern);
-
-            
-            //  TODO разбить полученное сообщение на теги и само сообщение. можно стплитнуть через PRIVMSG
-            //  TODO clear playerRefs for oAuth2
+            var twitchMessage = m_parser.SplitMessageTags(message);
+            if (twitchMessage.Length != 2) return;
+            var chatTags = twitchMessage[0];
+            var chatMessage = twitchMessage[1].Split(":")[1];
 
             m_settings ??= LocalStorage.GetSettings();
-            
-            if (!message.Contains(PrivateMessage)) return;
 
-            var messageParts = message.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            var userName = GetValueByChatTag(DisplayName, messageParts);
+            var chatTagsParts = chatTags.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            var userName = m_parser.GetUserName(chatTagsParts);
 
 
-            await CreateUserData(userName, messageParts);
+            await CreateUserData(userName, chatTagsParts);
 
             if (userName != null)
             {
                 if (m_settings.useAvatars)
                 {
-                    await AttackUser(userName, messageParts);
-                    await StartAvatar(userName, message);   
+                    await AttackUser(userName, chatMessage);
+                    await StartAvatar(userName, chatMessage);
                 }
 
                 if (m_settings.useImages)
                 {
-                    await ShowImage(message);    
+                    await ShowImage(chatMessage);
                 }
 
-                if (m_settings.canBeWelcomed)
+                if (m_settings.useGreetings)
                 {
-                    await SayHello(userName, message);   
+                    await SayHello(userName, chatMessage);
                 }
             }
         }
@@ -83,46 +58,34 @@ namespace Twitch
         {
             var settings = LocalStorage.GetSettings();
 
-            var moderator = GetValueByChatTag(Moderator, message) != Zero;
-            var firstMessage = GetValueByChatTag(FirstMessage, message) != Zero;
-            var subscriber = GetValueByChatTag(Subscriber, message) != Zero;
-            var returningChatter = GetValueByChatTag(ReturningChatter, message) != Zero;
-
-            if (!ColorUtility.TryParseHtmlString(GetValueByChatTag(UserColor, message), out var color) || !settings.displayNicknameColor)
-            {
-                color = Color.white;
-            }
+            var firstMessage = m_parser.IsFirstMessage(message);
+            var nameColor = settings.displayNicknameColor ? m_parser.GetUserColor(message) : Color.white;
+            var rewardId = m_parser.GetRewardId(message);
 
             if (m_chatters.TryGetValue(userName, out var userData))
             {
-                userData.Color = color;
-                userData.IsModerator = moderator;
-                userData.IsSubscriber = subscriber;
-                userData.IsReturningChatter = returningChatter;
+                userData.CustomRewardId = rewardId;
                 userData.IsFirstMessage = firstMessage;
             }
             else
             {
-                var newUserData = new ChatUserData
+                userData = new ChatUserData
                 {
                     UserName = userName,
-                    IsModerator = moderator,
                     IsFirstMessage = firstMessage,
-                    IsSubscriber = subscriber,
-                    IsReturningChatter = returningChatter,
-                    Color = color
+                    IsReturningChatter = m_parser.IsReturnedChatter(message),
+                    Color = nameColor,
                 };
-                m_chatters.Add(userName, newUserData);
+                m_parser.SetBadges(userData, message);
+                m_chatters.Add(userName, userData);
             }
 
             return Task.CompletedTask;
         }
 
-        async Task ShowImage(string message)
+        async Task ShowImage(string chatMessage)
         {
-            var tag = $@"{Regex.Escape(LocalStorage.GetSettings().imageNameTag)}{NamePattern}";
-            var startOfChatMessage = message.Split(":").Last();
-            var imageName = await PullByPattern(startOfChatMessage, tag);
+            var imageName = await m_parser.GetTaggingWordWithoutTag(LocalStorage.GetSettings().imageNameTag, chatMessage);
             if (imageName != null)
             {
                 OnImageShown?.Invoke(imageName.ToLower());
@@ -132,11 +95,12 @@ namespace Twitch
         async Task SayHello(string userName, string message)
         {
             if (await DidUserSayHello(userName)) return;
-            if (await PullByPattern(message, HelloPattern) is not null)
+            //  TODO любое сообщение не поздоровавшегося чатерса будет выполнять этот говнокод.
+            if (m_parser.IsGreetingWordFound(message))
             {
                 m_chatters.TryGetValue(userName, out var userData);
                 if (userData != null) userData.DidSayHello = true;
-                OnSayHello?.Invoke(userName);
+                OnSayHello?.Invoke(m_chatters[userName]);
             }
         }
 
@@ -144,59 +108,25 @@ namespace Twitch
         {
             m_chatters.TryGetValue(userName, out var userData);
             if (userData == null) return;
-            if (LocalStorage.GetSettings().avatarSubscribersOnly && !userData.IsSubscriber) return;
-            var tag = $@"{Regex.Escape(LocalStorage.GetSettings().avatarNameTag)}{NamePattern}";
-            var startOfChatMessage = message.Split(":").Last();
-            var avatarName = await PullByPattern(startOfChatMessage, tag);
-            Debug.Log(tag);
-            Debug.Log(startOfChatMessage);
-            Debug.Log(avatarName);
+
+            if (LocalStorage.GetSettings().avatarSubscribersOnly && userData.SubscriberLevel == 0) return;
+
+            var avatarName = await m_parser.GetTaggingWordWithoutTag(LocalStorage.GetSettings().avatarNameTag, message);
             if (avatarName != null)
             {
                 OnAvatarStarted?.Invoke(userData, avatarName.ToLower());
             }
         }
 
-        Task AttackUser(string userName, string[] message)
+        Task AttackUser(string userName, string message)
         {
-
-            var part = message.FirstOrDefault(s => s.Contains("_attack"));
-            if (part == null) return Task.CompletedTask;;
-            var match = Regex.Match(part, AttackPattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
-            if (match.Success)
+            var targetName = m_parser.GetAttackedName(message);
+            if (targetName != null)
             {
-                var targetName = match.Groups[1].Value;
-                Debug.Log(part);
-                Debug.Log(userName);
-                Debug.Log(targetName);      //  target name with @
                 OnAvatarPursuit?.Invoke(userName, targetName);
             }
 
             return Task.CompletedTask;
-        }
-
-
-        string GetValueByChatTag(string tag, string[] splittingMessage)
-        {
-            var partOfMessage = splittingMessage.FirstOrDefault(s => s.StartsWith(tag));
-            if (partOfMessage != null)
-            {
-                var splitMessagePart = partOfMessage.Split('=');
-                if (splitMessagePart.Length == 2)
-                {
-                    return splitMessagePart[1];
-                }
-            }
-
-            return Zero;
-        }
-
-
-        [ItemCanBeNull]
-        Task<string> PullByPattern(string message, string pattern)
-        {
-            var match = Regex.Match(message, pattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
-            return Task.FromResult(match.Success ? match.Groups[1].Value : null);
         }
 
         Task<bool> DidUserSayHello(string userName)

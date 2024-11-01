@@ -31,10 +31,9 @@ namespace Data
         
         [JsonProperty("ua")] public bool useAvatars = true;
         [JsonProperty("ui")] public bool useImages = true;
+        [JsonProperty("ug")] public bool useGreetings = true;
         
-        [JsonProperty("cw")] public bool canBeWelcomed = true;
-        
-        [JsonProperty("at")] public string avatarNameTag = "*";
+        [JsonProperty("at")] public string avatarNameTag = "!";
         [JsonProperty("it")] public string imageNameTag = "!";
     }
 }

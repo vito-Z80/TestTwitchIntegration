@@ -751,7 +751,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 103.075005, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &55312411
 MonoBehaviour:
@@ -796,7 +796,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 55312412}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 676944219}
+        m_TargetAssemblyTypeName: UI.Greetings.GreetingsUi, Assembly-CSharp
+        m_MethodName: SetVisibility
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &55312412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1640,7 +1652,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d5da4523f0d43b0b9a01689680b3c12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_userName: {fileID: 1760079207}
+  userNameLabel: {fileID: 1760079207}
 --- !u!114 &154652141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2881,9 +2893,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
   m_MinWidth: -1
-  m_MinHeight: 80
+  m_MinHeight: -1
   m_PreferredWidth: -1
-  m_PreferredHeight: -1
+  m_PreferredHeight: 128
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -6829,7 +6841,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 589421981}
   m_TextViewport: {fileID: 1899630266}
   m_TextComponent: {fileID: 973786530}
@@ -7198,10 +7210,10 @@ GameObject:
   - component: {fileID: 676944222}
   - component: {fileID: 676944221}
   - component: {fileID: 676944220}
-  - component: {fileID: 676944219}
   - component: {fileID: 676944218}
+  - component: {fileID: 676944219}
   m_Layer: 5
-  m_Name: Greetings
+  m_Name: GreetingsWindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7235,7 +7247,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 500.3, y: -181.3}
+  m_AnchoredPosition: {x: 442, y: -212}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &676944218
@@ -10287,6 +10299,7 @@ GameObject:
   - component: {fileID: 1008131957}
   - component: {fileID: 1008131959}
   - component: {fileID: 1008131958}
+  - component: {fileID: 1008131960}
   m_Layer: 5
   m_Name: UseToggle
   m_TagString: Untagged
@@ -10387,8 +10400,32 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1008131960}
+        m_TargetAssemblyTypeName: UI.GreetingsWindow.UseGreetingsToggleUI, Assembly-CSharp
+        m_MethodName: OnValueChanged
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 1
+--- !u!114 &1008131960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1008131956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f621d71230384593bf5f997debe86fe7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1012213660
 GameObject:
   m_ObjectHideFlags: 0
@@ -10401,7 +10438,6 @@ GameObject:
   - component: {fileID: 1012213665}
   - component: {fileID: 1012213664}
   - component: {fileID: 1012213663}
-  - component: {fileID: 1012213662}
   m_Layer: 5
   m_Name: AvatarAreaButton
   m_TagString: Untagged
@@ -10427,21 +10463,8 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 103.075005, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1012213662
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1012213660}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dab325ddbf3148808551427cda7a04d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  settingsWindow: {fileID: 1830705249}
 --- !u!114 &1012213663
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10486,9 +10509,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1012213662}
-        m_TargetAssemblyTypeName: UI.AvatarAreaButtonUI, Assembly-CSharp
-        m_MethodName: OnClick
+      - m_Target: {fileID: 1830705258}
+        m_TargetAssemblyTypeName: UI.TopMenu.AvatarAreaWindowUI, Assembly-CSharp
+        m_MethodName: SetVisibility
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -10640,7 +10663,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 156928829}
   toggleTransition: 1
   graphic: {fileID: 1633094761}
@@ -10753,7 +10776,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1628515994}
   toggleTransition: 1
   graphic: {fileID: 1217110614}
@@ -10761,7 +10784,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1036884909
 GameObject:
   m_ObjectHideFlags: 0
@@ -11566,7 +11589,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 451478530}
   toggleTransition: 1
   graphic: {fileID: 1270876009}
@@ -11574,7 +11597,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1092621364
 GameObject:
   m_ObjectHideFlags: 0
@@ -12161,7 +12184,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 2.036003, y: -0.5}
+  m_AnchoredPosition: {x: 2.0360107, y: -0.5}
   m_SizeDelta: {x: -15.9281, y: -13}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1108899666
@@ -12712,7 +12735,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Greeting variants
+  m_Text: Greetings variants
 --- !u!222 &1131890119
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -14355,7 +14378,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1425466028120362806, guid: 10b690f2560852c498366fcc8c307314, type: 3}
       propertyPath: m_Text
-      value: Images settings
+      value: Avatars Area settings
       objectReference: {fileID: 0}
     - target: {fileID: 2635773537247211013, guid: 10b690f2560852c498366fcc8c307314, type: 3}
       propertyPath: m_AnchorMax.y
@@ -15838,8 +15861,9 @@ GameObject:
   - component: {fileID: 1500626144}
   - component: {fileID: 1500626138}
   - component: {fileID: 1500626143}
+  - component: {fileID: 1500626145}
   m_Layer: 5
-  m_Name: Image
+  m_Name: ImageWindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15870,7 +15894,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 492, y: -302}
+  m_AnchoredPosition: {x: 357, y: -340}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1500626138
@@ -15996,6 +16020,18 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &1500626145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1500626136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 941c928d255d463387e8b4ff58838778, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1501001437
 GameObject:
   m_ObjectHideFlags: 0
@@ -18101,7 +18137,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 103.075005, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1664886832
 MonoBehaviour:
@@ -18405,42 +18441,6 @@ MonoBehaviour:
   masterVolume: {fileID: 1961371758}
   arrowCursor: {fileID: 2800000, guid: fd188841dc0252e48a02f4952ec9dc19, type: 3}
   handCursor: {fileID: 2800000, guid: bae43f881c597dc4ab9df11213175b56, type: 3}
---- !u!1 &1687283410
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1687283411}
-  m_Layer: 5
-  m_Name: Top
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1687283411
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1687283410}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1870801407}
-  m_Father: {fileID: 1950747325}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1687339378
 GameObject:
   m_ObjectHideFlags: 0
@@ -18772,7 +18772,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 103.075005, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1710564189
 MonoBehaviour:
@@ -20286,8 +20286,9 @@ GameObject:
   - component: {fileID: 1830705252}
   - component: {fileID: 1830705251}
   - component: {fileID: 1830705250}
+  - component: {fileID: 1830705258}
   m_Layer: 5
-  m_Name: AvatarsArea
+  m_Name: AvatarsAreaWindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20451,6 +20452,18 @@ RectTransform:
   m_AnchoredPosition: {x: 180, y: -203}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1830705258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1830705249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab325ddbf3148808551427cda7a04d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1830813652
 GameObject:
   m_ObjectHideFlags: 0
@@ -20723,7 +20736,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1715083661}
   m_FillRect: {fileID: 1790202960}
   m_HandleRect: {fileID: 1715083659}
@@ -21653,13 +21666,13 @@ RectTransform:
   - {fileID: 55312410}
   - {fileID: 1664886830}
   - {fileID: 1710564188}
-  m_Father: {fileID: 1687283411}
+  m_Father: {fileID: 1950747325}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 319.79, y: -15}
-  m_SizeDelta: {x: 639.58, y: 30}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &1870801408
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21681,10 +21694,10 @@ MonoBehaviour:
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
-  m_ChildScaleWidth: 1
-  m_ChildScaleHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
 --- !u!1 &1875343686
 GameObject:
@@ -22343,7 +22356,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 277273955}
   toggleTransition: 1
   graphic: {fileID: 1297650852}
@@ -22732,7 +22745,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 103.075005, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1939576538
 MonoBehaviour:
@@ -22865,6 +22878,7 @@ GameObject:
   - component: {fileID: 1946371284}
   - component: {fileID: 1946371283}
   - component: {fileID: 1946371282}
+  - component: {fileID: 1946371285}
   m_Layer: 5
   m_Name: InputField (TMP)
   m_TagString: Untagged
@@ -22953,7 +22967,20 @@ MonoBehaviour:
   m_CharacterLimit: 0
   m_OnEndEdit:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1946371285}
+        m_TargetAssemblyTypeName: UI.GreetingsWindow.GreetingsVariantsInputFieldUI,
+          Assembly-CSharp
+        m_MethodName: SaveData
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -23031,6 +23058,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1946371280}
   m_CullTransparentMesh: 1
+--- !u!114 &1946371285
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1946371280}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba93b2efb2424751bf12cdeb796e311f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1950747324
 GameObject:
   m_ObjectHideFlags: 0
@@ -23059,7 +23098,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1687283411}
+  - {fileID: 1870801407}
   - {fileID: 1500626137}
   - {fileID: 1830705257}
   - {fileID: 676944217}
@@ -23162,7 +23201,6 @@ GameObject:
   - component: {fileID: 1952347550}
   - component: {fileID: 1952347549}
   - component: {fileID: 1952347548}
-  - component: {fileID: 1952347551}
   m_Layer: 5
   m_Name: ImageButton
   m_TagString: Untagged
@@ -23188,7 +23226,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 103.075005, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1952347548
 MonoBehaviour:
@@ -23234,9 +23272,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1952347551}
-        m_TargetAssemblyTypeName: UI.AvatarAreaSettingsButtonUI, Assembly-CSharp
-        m_MethodName: OnClick
+      - m_Target: {fileID: 1500626145}
+        m_TargetAssemblyTypeName: UI.TopMenu.ImageWindowUI, Assembly-CSharp
+        m_MethodName: SetVisibility
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -23284,19 +23322,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1952347546}
   m_CullTransparentMesh: 1
---- !u!114 &1952347551
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1952347546}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 941c928d255d463387e8b4ff58838778, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  settingsWindow: {fileID: 1500626136}
 --- !u!1 &1952541906
 GameObject:
   m_ObjectHideFlags: 0

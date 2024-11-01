@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Data;
 using UI;
+using UI.AvatarAreaWindow;
 using UnityEngine;
 using UnityEngine.U2D;
 using Random = UnityEngine.Random;
@@ -52,6 +53,7 @@ namespace Avatars
 
         AppSettingsData m_settings;
 
+        Coroutine m_pursuitCoroutine;
 
         void Start()
         {
@@ -376,6 +378,7 @@ namespace Avatars
         void WasAttacked()
         {
             m_wasAttacked = true;
+            m_gotHit = false;
         }
 
         void GotHit(Vector3 direction)
@@ -391,7 +394,11 @@ namespace Avatars
             if (!m_isAttackPermitted) return;
             m_isAttackPermitted = false;
             m_targetAvatar = target;
-            StartCoroutine(Pursuit());
+            if (m_pursuitCoroutine != null)
+            {
+                StopCoroutine(m_pursuitCoroutine);
+            }
+            m_pursuitCoroutine = StartCoroutine(Pursuit());
         }
     }
 }

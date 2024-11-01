@@ -2,6 +2,7 @@
 using Data;
 using Twitch;
 using UI;
+using UI.AvatarAreaWindow;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -120,9 +121,10 @@ namespace Avatars
                         UserName = $"test_name_{i}",
                         Color = Color.white,
                         IsModerator = false,
-                        IsSubscriber = false,
+                        SubscriberLevel = 0,
                         IsFirstMessage = false,
                         IsReturningChatter = true,
+                        
                     };
                     
                     StartAvatar(testUserData, "toad");
