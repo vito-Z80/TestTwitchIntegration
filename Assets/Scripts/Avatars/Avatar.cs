@@ -258,7 +258,6 @@ namespace Avatars
             {
                 m_randomTargetDirection.y = Random.Range(AvatarArea.Rect.min.y + areaOffset.Bottom, AvatarArea.Rect.max.y + areaOffset.Top);
             }
-            Debug.Log($"{m_currentState} | {m_currentStateVariant}");
         }
         
 
