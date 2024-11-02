@@ -5,6 +5,7 @@ namespace Data
 {
     public class AvatarData
     {
+        [JsonProperty("p")] public string Path;
         [JsonProperty("n")] public string AvatarName;
         [JsonProperty("a")] public int Access = 0;
         [JsonProperty("am")] public Dictionary<AvatarState, AvatarAnimationData[]> Animations;

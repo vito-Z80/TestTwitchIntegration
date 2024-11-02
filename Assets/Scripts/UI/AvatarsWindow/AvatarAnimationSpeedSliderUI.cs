@@ -11,15 +11,11 @@ namespace UI.AvatarsWindow
         AvatarAnimationData m_avatarAnimationData;
 
 
-        void Start()
-        {
-            m_slider = GetComponent<Slider>();
-        }
-
         public void SetAvatarAnimationVariantData(AvatarAnimationData avatarAnimationData)
         {
             m_avatarAnimationData = avatarAnimationData;
-            m_slider.value = m_avatarAnimationData.AnimationSpeed;
+            m_slider ??= GetComponent<Slider>();
+            m_slider.SetValueWithoutNotify(m_avatarAnimationData.AnimationSpeed);
         }
 
 
@@ -31,7 +27,7 @@ namespace UI.AvatarsWindow
         public void OnValueChanged(string value)
         {
             float.TryParse(value, out var speed);
-            m_slider.value = speed;
+            m_slider.SetValueWithoutNotify(speed);
         }
     }
 }

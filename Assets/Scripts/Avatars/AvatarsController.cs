@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Data;
 using Twitch;
 using UI;
@@ -70,7 +71,7 @@ namespace Avatars
                 var avatarData = AvatarsStorage.GetAvatarData(avatarName);
                 if (avatarData != null)
                 {
-                    m_avatars[userName].Init(m_pixelPerfectCamera, avatarName, this, avatarData);
+                    m_avatars[userName].Init( avatarName,  avatarData);
                     m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userData);
                 }
             }
@@ -89,7 +90,7 @@ namespace Avatars
             if (avatarData != null)
             {
                 var newAvatar = Instantiate(avatarPrefab, position, Quaternion.identity, transform).GetComponent<Avatar>();
-                newAvatar.Init(m_pixelPerfectCamera, avatarName, this, avatarData);
+                newAvatar.Init( avatarName,  avatarData);
                 m_avatars[userName] = newAvatar;
                 return true;
             }
@@ -106,8 +107,9 @@ namespace Avatars
             m_names[userData.UserName] = un;
         }
 
-        public void ShowTest(bool isTest)
+        public void ShowTest(bool isTest, string avatarName)
         {
+            if (!AvatarsStorage.GetAvatarNames().ToList().Contains(avatarName)) return;
             if (isTest)
             {
                 for (var i = 0; i < 20; i++)
@@ -124,7 +126,7 @@ namespace Avatars
                         
                     };
                     
-                    StartAvatar(testUserData, "toad");
+                    StartAvatar(testUserData, avatarName);
                 }
             }
             else

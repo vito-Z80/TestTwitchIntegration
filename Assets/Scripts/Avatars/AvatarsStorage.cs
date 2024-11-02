@@ -7,10 +7,11 @@ namespace Avatars
 {
     public static class AvatarsStorage
     {
-        static readonly LocalAvatarCollection LocalAvatarCollection= new LocalAvatarCollection();
+        static readonly LocalAvatarCollection LocalAvatarCollection= new();
         static readonly Dictionary<string,  AvatarData> Avatars = LocalAvatarCollection.GenerateAvatars();
 
        
+        public static Dictionary<string,  AvatarData> GetAvatars() => Avatars;
 
         public static AvatarData GetAvatarData(string avatarName)
         {
@@ -18,7 +19,7 @@ namespace Avatars
         }
 
         public static string[] GetAvatarNames() => Avatars.Keys.ToArray();
-        // public Texture2D GetAvatarTexture() => m_localAvatarCollection.GetAtlas();
+        public static Texture2D GetAvatarsAtlas() => LocalAvatarCollection.GetAtlas();
         public static Sprite[] GetSprites() => LocalAvatarCollection.GetSprites();
     }
 }

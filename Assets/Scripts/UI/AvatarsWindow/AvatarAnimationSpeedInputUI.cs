@@ -8,17 +8,13 @@ namespace UI.AvatarsWindow
     {
         TMP_InputField m_input;
         AvatarAnimationData m_avatarAnimationData;
-
-
-        void Start()
-        {
-            m_input = GetComponent<TMP_InputField>();
-        }
+        
 
         public void SetAvatarAnimationVariantData(AvatarAnimationData avatarAnimationData)
         {
             m_avatarAnimationData = avatarAnimationData;
-            m_input.text = $"{m_avatarAnimationData.AnimationSpeed}";
+            m_input ??= GetComponent<TMP_InputField>();
+            m_input.SetTextWithoutNotify($"{m_avatarAnimationData.AnimationSpeed}");
         }
 
 
@@ -29,7 +25,7 @@ namespace UI.AvatarsWindow
         }
         public void OnValueChanged(float value)
         {
-            m_input.text = $"{value}";
+            m_input.SetTextWithoutNotify($"{value}");
         }
     }
 }

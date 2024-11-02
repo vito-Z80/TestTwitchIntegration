@@ -1,4 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Data;
+using UnityEngine;
 using UnityEngine.U2D;
 
 public static class Utils
@@ -22,12 +27,40 @@ public static class Utils
 
         return new Vector2(offscreenRTWidth, offscreenRTHeight);
     }
-    
+
     public static string GetHexColor(Color color)
     {
         var r = ((int)(color.r * 255)).ToString("X2");
         var g = ((int)(color.g * 255)).ToString("X2");
         var b = ((int)(color.b * 255)).ToString("X2");
         return "#" + r + g + b;
+    }
+
+    public static string NormalizePath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            throw new ArgumentException("Path cannot be null or empty", nameof(path));
+        }
+
+        return path.Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    public static string[] GetDirectory(string path)
+    {
+        return Directory.GetDirectories(path)
+            .Select(NormalizePath)
+            .ToArray();
+    }
+
+    public static UVRect[] RectToUVRect(Rect[] rects)
+    {
+        return rects.Select(r => new UVRect(r)).ToArray();
+    }
+
+    public static Rect[] UVRectToRect(UVRect[] uvRects)
+    {
+        return uvRects.Select(r => new Rect(r.x, r.y, r.width, r.height)).ToArray();
     }
 }

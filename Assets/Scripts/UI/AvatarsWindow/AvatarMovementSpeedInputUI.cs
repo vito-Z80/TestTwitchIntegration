@@ -10,15 +10,11 @@ namespace UI.AvatarsWindow
         AvatarAnimationData m_avatarAnimationData;
 
 
-        void Start()
-        {
-            m_input = GetComponent<TMP_InputField>();
-        }
-
         public void SetAvatarAnimationVariantData(AvatarAnimationData avatarAnimationData)
         {
             m_avatarAnimationData = avatarAnimationData;
-            m_input.text = $"{m_avatarAnimationData.AvatarSpeed}";
+            m_input ??= GetComponent<TMP_InputField>();
+            m_input.SetTextWithoutNotify($"{m_avatarAnimationData.AvatarSpeed}");
         }
 
 
@@ -27,10 +23,10 @@ namespace UI.AvatarsWindow
             float.TryParse(value, out var speed);
             m_avatarAnimationData.AvatarSpeed = speed;
         }
+
         public void OnValueChanged(float value)
         {
-            m_input.text = $"{value}";
+            m_input.SetTextWithoutNotify($"{value}");
         }
-    
     }
 }

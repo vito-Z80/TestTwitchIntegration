@@ -4,6 +4,7 @@ using UI;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.U2D;
+using UnityEngine.UI;
 
 public class Core : MonoBehaviour
 {
@@ -105,6 +106,7 @@ public class Core : MonoBehaviour
     {
         SetDefaultCursor();
         LocalStorage.SaveSettings();
+        LocalStorage.SaveAvatarsData();
         Log.SaveLog();
         m_connect.OnApplicationQuit();
     }

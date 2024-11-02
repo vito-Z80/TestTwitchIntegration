@@ -12,11 +12,10 @@ namespace Images
 {
     public class LocalImageCollection
     {
-        const string ImagesFolder = "Graphics/Images";
 
         public Dictionary<string, Sprite> GetImages()
         {
-            var path = $"{Application.streamingAssetsPath}/{ImagesFolder}";
+            var path = $"{Application.streamingAssetsPath}/{LocalStorage.ImagesFolder}";
 
 
             Dictionary<string, Sprite> images = new();

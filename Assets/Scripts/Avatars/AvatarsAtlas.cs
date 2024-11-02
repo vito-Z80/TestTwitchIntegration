@@ -13,23 +13,42 @@ namespace Avatars
         Texture2D m_atlasTexture;
         Sprite[] m_sprites;
 
+
+        public bool UseLocalAtlas()
+        {
+            LocalStorage.LoadAtlasData(out m_atlasTexture, out m_uvRects);
+            if (m_atlasTexture == null || m_uvRects == null) return false;
+            GenerateSprites(m_uvRects.Length);
+            Log.LogMessage("Generated Sprites from local atlas.");
+            return true;
+        }
+
         public void GenerateAtlas(List<Texture2D> textures)
         {
-            m_atlasTexture = new Texture2D(AtlasWidth, AtlasHeight, TextureFormat.RGBA32, false, false)
+            m_atlasTexture ??= new Texture2D(AtlasWidth, AtlasHeight, TextureFormat.RGBA32, false, false)
             {
                 minimumMipmapLevel = 0,
                 wrapMode = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Point,
             };
 
-            m_uvRects = m_atlasTexture.PackTextures(textures.ToArray(), 2, AtlasWidth);
+            m_uvRects ??= m_atlasTexture.PackTextures(textures.ToArray(), 2, AtlasWidth);
 
             if (m_uvRects.Length != textures.Count)
             {
-                Log.LogMessage("The number of uv textures does not match the number of pixels of the atlas");
+                Log.LogMessage("The number of uv textures does not match the number of pixels of the atlas." +
+                               $" Too many images did not fit into the {AtlasWidth}x{AtlasHeight} atlas." +
+                               $" The number of uv textures: {textures.Count}");
             }
 
-            m_sprites = new Sprite[textures.Count];
+            GenerateSprites(m_uvRects.Length);
+            Log.LogMessage($"Generated Sprites from {m_uvRects.Length} textures.");
+            LocalStorage.SaveAtlasData(m_atlasTexture, m_uvRects);
+        }
+
+        void GenerateSprites(int count)
+        {
+            m_sprites = new Sprite[count];
             for (var id = 0; id < m_uvRects.Length; id++)
             {
                 var pixelRect = new Rect(

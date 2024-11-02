@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using Data;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Avatars
 {
     public class LocalAvatarCollection
     {
-        const string AvatarsFolder = "Graphics/Avatars";
         AvatarsAtlas m_avatarsAtlas;
         readonly List<Texture2D> m_textures = new();
         int m_textureCounter;
@@ -18,23 +18,50 @@ namespace Avatars
         public Dictionary<string, AvatarData> GenerateAvatars()
         {
             m_textureCounter = 0;
-            var path = $"{Application.streamingAssetsPath}/{AvatarsFolder}";
+            var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{LocalStorage.AvatarsFolder}");
+            
+            
+            //  TODO атлас не обновляется при удалении папки в автарах. 03.11.2024 3:53:54: The number of uv textures does not match the number of pixels of the atlas. Too many images did not fit into the 4096x4096 atlas. The number of uv textures: 73
+            //  атлас всегда загружается и видимо юзаются его данные. 03.11.2024 3:53:54: Loaded 85 UV Rects for atlas: C:\projects\unity\Twitch\Test\TestTwitchIntegration\Assets\StreamingAssets\Graphics\Avatars\atlasRects.json
+            //  нужно подменять данные аватаров при пересоздании аталаса.
+            
+            
+            
+            m_avatarsAtlas = new AvatarsAtlas();
+            if (m_avatarsAtlas.UseLocalAtlas() && LocalStorage.IsFolderWriteTimeMatched(path))
+            {
+                var avatarsData = LocalStorage.LoadAvatarsData();
+                if (avatarsData != null)
+                {
+                    Log.LogMessage($"Loading local avatars atlas data.");
+                    return avatarsData;
+                }
+            }
 
             //  dict<avatarName, dict<state, indices>>; state = left, right, idle, attack...;  indices = uv region indices
             Dictionary<string, AvatarData> avatars = new Dictionary<string, AvatarData>();
             //  имена папок аватаров
-            var avatarFolderPaths = Directory.GetDirectories(path);
+            var avatarFolderPaths = Utils.GetDirectory(path);
             foreach (var avatarFolder in avatarFolderPaths)
             {
-                var avtar = AvatarVariants(Directory.GetDirectories(avatarFolder));
-                if (avtar != null)
+                var avatarData = GetLocalJson(avatarFolder);
+                var avtarStates = AvatarVariants(Utils.GetDirectory(avatarFolder));
+                var avatarName = Path.GetFileName(avatarFolder).ToLower();
+                if (avatarData == null)
                 {
-                    var avatarName = avatarFolder.Split("\\").Last().ToLower();
-                    var avatarData = new AvatarData
+                    if (avtarStates != null)
                     {
-                        AvatarName = avatarName,
-                        Animations = avtar
-                    };
+                        avatarData = new AvatarData
+                        {
+                            AvatarName = avatarName,
+                            Animations = avtarStates,
+                            Path = avatarFolder,
+                        };
+                        avatars.Add(avatarName, avatarData);
+                    }
+                }
+                else
+                {
                     avatars.Add(avatarName, avatarData);
                 }
             }
@@ -84,13 +111,22 @@ namespace Avatars
                         break;
                 }
             }
-
-
-            // AddMissingTextures(m_textures, avatars);
-
-            m_avatarsAtlas = new AvatarsAtlas();
+            
             m_avatarsAtlas.GenerateAtlas(m_textures);
             return avatars;
+        }
+
+        [CanBeNull]
+        AvatarData GetLocalJson(string avatarFolder)
+        {
+            var filePath = Utils.NormalizePath($"{avatarFolder}/data.json");
+            if (File.Exists(filePath))
+            {
+                var json = File.ReadAllText(filePath);
+                return JsonConvert.DeserializeObject<AvatarData>(json);
+            }
+
+            return null;
         }
 
         void CopyMissingAvatarData(AvatarData avatarData, AvatarState existingState, AvatarState newState, bool flipX = false)
@@ -110,113 +146,10 @@ namespace Avatars
             avatarData.Animations.Add(newState, animations.ToArray());
         }
 
-        void AddMissingTextures(List<Texture2D> textures, Dictionary<string, Dictionary<AvatarState, int[]>> avatars)
-        {
-            var counter = textures.Count;
-            foreach (var avatar in avatars.Values)
-            {
-                if (avatar.ContainsKey(AvatarState.Right) && !avatar.ContainsKey(AvatarState.Left))
-                {
-                    //  create left flipX 
-                    var indices = new List<int>();
-                    foreach (var id in avatar[AvatarState.Right])
-                    {
-                        var flipTex = FlipTextureHorizontally(textures[id]);
-                        m_textures.Add(flipTex);
-                        indices.Add(counter);
-                        counter++;
-                    }
-
-                    avatar.Add(AvatarState.Left, indices.ToArray());
-
-                    //  add attack if exist
-                    if (avatar.ContainsKey(AvatarState.Attack))
-                    {
-                        //  copy right attack
-                        if (avatar.Remove(AvatarState.Attack, out var rightAttackIndices))
-                        {
-                            avatar.Add(AvatarState.AttackRight, rightAttackIndices);
-                        }
-
-                        //  create left attack
-                        var leftAttackIndices = new List<int>();
-                        foreach (var id in avatar[AvatarState.AttackRight])
-                        {
-                            var flipTex = FlipTextureHorizontally(textures[id]);
-                            m_textures.Add(flipTex);
-                            leftAttackIndices.Add(counter);
-                            counter++;
-                        }
-
-                        avatar.Add(AvatarState.AttackLeft, leftAttackIndices.ToArray());
-                    }
-                }
-                else if (avatar.ContainsKey(AvatarState.Left) && !avatar.ContainsKey(AvatarState.Right))
-                {
-                    //  create right flipX 
-                    var indices = new List<int>();
-                    foreach (var id in avatar[AvatarState.Left])
-                    {
-                        var flipTex = FlipTextureHorizontally(textures[id]);
-                        m_textures.Add(flipTex);
-                        indices.Add(counter);
-                        counter++;
-                    }
-
-                    avatar.Add(AvatarState.Right, indices.ToArray());
-
-                    //  add attack if exist
-                    if (avatar.ContainsKey(AvatarState.Attack))
-                    {
-                        //  copy left attack
-                        if (avatar.Remove(AvatarState.Attack, out var leftAttackIndices))
-                        {
-                            avatar.Add(AvatarState.AttackLeft, leftAttackIndices);
-                        }
-
-                        //  create right attack
-                        var rightAttackIndices = new List<int>();
-                        foreach (var id in avatar[AvatarState.AttackLeft])
-                        {
-                            var flipTex = FlipTextureHorizontally(textures[id]);
-                            m_textures.Add(flipTex);
-                            rightAttackIndices.Add(counter);
-                            counter++;
-                        }
-
-                        avatar.Add(AvatarState.AttackRight, rightAttackIndices.ToArray());
-                    }
-                }
-
-                if (avatar.ContainsKey(AvatarState.Idle) && !avatar.ContainsKey(AvatarState.Left))
-                {
-                    var left = new List<int>();
-                    foreach (var id in avatar[AvatarState.Idle])
-                    {
-                        m_textures.Add(m_textures[id]);
-                        left.Add(counter);
-                        counter++;
-                    }
-
-                    avatar.Add(AvatarState.Left, left.ToArray());
-
-                    var right = new List<int>();
-                    foreach (var id in avatar[AvatarState.Idle])
-                    {
-                        m_textures.Add(m_textures[id]);
-                        right.Add(counter);
-                        counter++;
-                    }
-
-                    avatar.Add(AvatarState.Right, right.ToArray());
-                }
-            }
-        }
-
         void ProcessDirectory(string path, List<string> filesByDirectory)
         {
             filesByDirectory.Add(Path.GetFullPath(path));
-            foreach (var directory in Directory.GetDirectories(path))
+            foreach (var directory in Utils.GetDirectory(path))
             {
                 ProcessDirectory(directory, filesByDirectory);
             }
@@ -235,15 +168,8 @@ namespace Avatars
             //  имена папок вариантов одной анимации (idle, left, right...)
             foreach (var folder in folders)
             {
-                Debug.Log(folder);
                 nestedFolders.Clear();
                 ProcessDirectory(folder, nestedFolders);
-
-                foreach (var f in nestedFolders)
-                {
-                    Debug.Log(f);
-                }
-
                 var subAnimations = new List<AvatarAnimationData>();
 
                 foreach (var folderPath in nestedFolders)
@@ -251,8 +177,8 @@ namespace Avatars
                     var texIndices = new List<int>();
                     CollectTexturesByPath(folderPath, texIndices);
 
-                    var defaultFolderName = folder.Split("\\").Last();
-                    var nestedFolderName = folderPath.Split("\\").Last();
+                    var defaultFolderName = Path.GetFileName(folder);
+                    var nestedFolderName = Path.GetFileName(folderPath);
 
 
                     if (texIndices.Count > 0)

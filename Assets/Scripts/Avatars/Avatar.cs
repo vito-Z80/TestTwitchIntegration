@@ -15,6 +15,7 @@ namespace Avatars
         public string avatarName;
 
         PixelPerfectCamera m_pixelPerfectCamera;
+        Camera m_camera;
         Dictionary<AvatarState, AvatarAnimationData[]> m_avatarStates;
         AvatarData m_avatarData;
         SpriteRenderer m_spriteRenderer;
@@ -26,6 +27,8 @@ namespace Avatars
         float m_frameTime; //  время кадра анимации
         float m_idleTime; //  время idle анимации
         float m_flyCurrentSpeed; // Текущая скорость атакованной цели
+
+        float m_accumulatedTime; //  Время накопления до смены кадра анимации. Время анимации устанавливается в кадрах в секунду.
 
         public float randomSpeed;
         // float m_bottomOffset;
@@ -46,8 +49,6 @@ namespace Avatars
         int m_currentStateVariant = 0;
         Rect m_flyArea;
 
-        AvatarsController m_avatarsController;
-
         Vector3 m_randomTargetDirection;
         Vector3 m_flyDirection; // Направление движения атакованной цели
         Vector3 m_lastPosition;
@@ -61,6 +62,8 @@ namespace Avatars
         {
             m_iFree = false;
             m_settings = LocalStorage.GetSettings();
+            m_camera = Core.Instance.Camera;
+            m_pixelPerfectCamera = Core.Instance.Ppc;
             m_spriteRenderer = gameObject.GetComponentInChildren<SpriteRenderer>();
             m_spriteRenderer.sharedMaterial = shadeMaterial;
             m_isAttackPermitted = true;
@@ -75,7 +78,7 @@ namespace Avatars
             return m_avatarStates.ContainsKey(state);
         }
 
-        public void Init(PixelPerfectCamera pixelPerfectCamera, string avatarName, AvatarsController avatarsController, AvatarData avatarData)
+        public void Init(string avatarName, AvatarData avatarData)
         {
             m_currentFrame = 0;
             randomSpeed = 1.0f;
@@ -83,9 +86,7 @@ namespace Avatars
             m_avatarData = avatarData;
             m_avatarStates = avatarData.Animations;
             SetState();
-            m_avatarsController = avatarsController;
             this.avatarName = avatarName;
-            m_pixelPerfectCamera = pixelPerfectCamera;
             m_leaveTime = 5.0f * 30.0f;
         }
 
@@ -94,7 +95,13 @@ namespace Avatars
             if (m_avatarStates == null) return;
             SetAreaVerticalOffset();
             SetRandomSpeed();
-            var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * 10.0f * randomSpeed;
+            
+            var cameraWorldSize = m_camera.orthographicSize * 2;
+            var pixelsPerUnit = m_settings.windowWidth / cameraWorldSize;
+            var speed = m_avatarData.Animations[m_currentState][m_currentStateVariant].AvatarSpeed;
+            var dt = speed / pixelsPerUnit * Time.deltaTime;
+            
+            // var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * 10.0f * randomSpeed;
 
             m_leaveTime += Time.deltaTime;
             if (m_leaveTime > 5 * 60)
@@ -109,7 +116,7 @@ namespace Avatars
                 {
                     if (!m_isPursue)
                     {
-                        Move(deltaTime);
+                        Move(dt);
                         SetState();
                         PlayAnimation();
                     }
@@ -210,20 +217,6 @@ namespace Avatars
             RandomMovement(deltaTime);
         }
 
-
-        // void OvalMovement(float deltaTime)
-        // {
-        //     m_angle += deltaTime / 8.0f;
-        //     if (m_angle > Mathf.PI * 2)
-        //         m_angle -= Mathf.PI * 2;
-        //     var a = m_area.width / 2f;
-        //     var b = m_area.height / 2f;
-        //     var center = new Vector2(m_area.x + a, m_area.y + b);
-        //     var x = center.x + a * Mathf.Cos(m_angle);
-        //     var y = center.y + b * Mathf.Sin(m_angle);
-        //     transform.position = new Vector3(x, y, transform.position.z);
-        // }
-
         void RandomMovement(float deltaTime)
         {
             m_idleTime -= deltaTime;
@@ -259,7 +252,7 @@ namespace Avatars
                 m_randomTargetDirection.y = Random.Range(AvatarArea.Rect.min.y + areaOffset.Bottom, AvatarArea.Rect.max.y + areaOffset.Top);
             }
         }
-        
+
 
         void SetState()
         {
@@ -306,7 +299,7 @@ namespace Avatars
                 if (m_avatarStates.TryGetValue(m_currentState, out var variants))
                 {
                     var spriteIndex = variants[m_currentStateVariant].AnimationIndices[m_currentFrame];
-                    var sprite = m_avatarsController.GetSprite(spriteIndex);
+                    var sprite = AvatarsStorage.GetSprites()[spriteIndex];
                     m_spriteRenderer.sprite = sprite;
                 }
                 else
@@ -326,31 +319,55 @@ namespace Avatars
 
         void PlayAnimation()
         {
-            if (m_frameTime > 1.0f / 8.0f)
+            if (m_avatarStates.TryGetValue(m_currentState, out var variants))
             {
-                m_frameTime = 0.0f;
+                var avatarAnimationData = variants[m_currentStateVariant];
+                var animationFrameTime = 1.0f / avatarAnimationData.AnimationSpeed;
+                m_accumulatedTime += Time.deltaTime;
+
+                if (m_accumulatedTime < animationFrameTime)
+                {
+                    return;
+                }
+
+                m_accumulatedTime -= animationFrameTime;
                 m_currentFrame++;
-                if (m_currentFrame == m_avatarStates[m_currentState][m_currentStateVariant].AnimationIndices.Length)
+                if (m_currentFrame >= avatarAnimationData.AnimationIndices.Length)
                 {
                     m_currentFrame = 0;
-                    // m_spriteRenderer.sprite = m_avatarsController.GetSprite(m_avatars[m_currentState][m_currentFrame]);
-                    // return;
                 }
 
-                if (m_avatarStates.TryGetValue(m_currentState, out var variants))
-                {
-                    var spriteIndex = variants[m_currentStateVariant].AnimationIndices[m_currentFrame];
-                    var sprite = m_avatarsController.GetSprite(spriteIndex);
-                    m_spriteRenderer.sprite = sprite;
-                }
-                else
-                {
-                    Log.LogMessage($"{avatarName}: не имеет анимации '{m_currentState}' но она вызывается волшебным образом ;) ");
-                }
+                var spriteIndex = avatarAnimationData.AnimationIndices[m_currentFrame];
+                m_spriteRenderer.sprite = AvatarsStorage.GetSprites()[spriteIndex];
             }
 
-            m_frameTime += Time.deltaTime * 1.45f;
+
+            // if (m_frameTime > 1.0f / 8.0f)
+            // {
+            //     m_frameTime = 0.0f;
+            //     m_currentFrame++;
+            //     if (m_currentFrame == m_avatarStates[m_currentState][m_currentStateVariant].AnimationIndices.Length)
+            //     {
+            //         m_currentFrame = 0;
+            //         // m_spriteRenderer.sprite = m_avatarsController.GetSprite(m_avatars[m_currentState][m_currentFrame]);
+            //         // return;
+            //     }
+            //
+            //     if (m_avatarStates.TryGetValue(m_currentState, out var variants))
+            //     {
+            //         var spriteIndex = variants[m_currentStateVariant].AnimationIndices[m_currentFrame];
+            //         var sprite = m_avatarsController.GetSprite(spriteIndex);
+            //         m_spriteRenderer.sprite = sprite;
+            //     }
+            //     else
+            //     {
+            //         Log.LogMessage($"{avatarName}: не имеет анимации '{m_currentState}' но она вызывается волшебным образом ;) ");
+            //     }
+            // }
+            //
+            // m_frameTime += Time.deltaTime * 1.45f;
         }
+
 
         void DestroyAvatar()
         {

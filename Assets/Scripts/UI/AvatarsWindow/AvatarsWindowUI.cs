@@ -4,7 +4,6 @@ using Avatars;
 using Data;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace UI.AvatarsWindow
@@ -23,6 +22,12 @@ namespace UI.AvatarsWindow
         [SerializeField] AvatarMovementSpeedSliderUI avatarMovementSpeedSlider;
         [SerializeField] AvatarMovementSpeedInputUI avatarMovementSpeedInput;
 
+
+        const float FrameSizeOffset = 12.0f;
+
+        float m_sizeForDisplay = 32.0f;
+        
+        public static event Action<string> OnAvatarChanged;
 
         AvatarData m_avatarData;
         AvatarAnimationData m_avatarAnimationData;
@@ -76,6 +81,7 @@ namespace UI.AvatarsWindow
             RefreshAvatarStates();
             RefreshAvatarStateVariant();
             SelectAvatarVariant(0);
+            OnAvatarChanged?.Invoke(m_avatarData.AvatarName);
         }
 
         public void SelectAvatarState(int index)
@@ -121,18 +127,16 @@ namespace UI.AvatarsWindow
             }
 
             var spriteIndex = m_animationIndices[m_currentFrame];
-            SetAnimationFrame(AvatarsStorage.GetSprites()[spriteIndex]);
+            avatarImage.sprite = AvatarsStorage.GetSprites()[spriteIndex];
+            SizeCorrection(avatarImage.sprite);
         }
 
-        void SetAnimationFrame(Sprite sprite)
+        void SizeCorrection(Sprite sprite)
         {
-            var ppu = 32.0f;
-            var frameOffset = 12.0f;
-            var width = sprite.bounds.size.x * ppu;
-            var height = sprite.bounds.size.y * ppu;
-            avatarImage.sprite = sprite;
+            var width = sprite.bounds.size.x * m_sizeForDisplay;
+            var height = sprite.bounds.size.y * m_sizeForDisplay;
             var imageSize = new Vector2(width, height);
-            var imageFrameSize = new Vector2(width + frameOffset, height + frameOffset);
+            var imageFrameSize = new Vector2(width + FrameSizeOffset, height + FrameSizeOffset);
             avatarImage.rectTransform.sizeDelta = imageSize;
             avatarImageFrame.rectTransform.sizeDelta = imageFrameSize;
         }
@@ -147,6 +151,11 @@ namespace UI.AvatarsWindow
         {
             if (m_animationIndices == null) return;
             PlayAnimationVariant();
+        }
+        
+        public void SetVisibility()
+        {
+            gameObject.SetActive(!gameObject.activeSelf);
         }
     }
 }
