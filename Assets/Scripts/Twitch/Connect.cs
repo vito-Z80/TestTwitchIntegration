@@ -106,8 +106,8 @@ namespace Twitch
 
         public void LogOut()
         {
-            PlayerPrefs.DeleteAll();
-            ConnectTwitch();
+            PlayerPrefs.DeleteKey(FieldKey);
+            // ConnectTwitch();
         }
 
 

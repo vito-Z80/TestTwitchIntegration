@@ -6,6 +6,7 @@ namespace Data
     {
         public string UserName;
         public string CustomRewardId;
+        public string MsgId;
         public Color Color;
         public bool IsReturningChatter;
         public bool IsFirstMessage;

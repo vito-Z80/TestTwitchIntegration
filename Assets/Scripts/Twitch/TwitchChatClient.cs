@@ -83,7 +83,7 @@ namespace Twitch
         private void Authenticate()
         {
             // Включаем режим тегов для получения метаданных
-            SendCommand("CAP REQ :twitch.tv/tags");
+            SendCommand("CAP REQ :twitch.tv/tags twitch.tv/commands");
             // Отправляем команды для аутентификации.
             SendCommand($"PASS oauth:{m_twitchOAuth.AuthorizationTokenData.access_token}");
             SendCommand($"NICK {m_userName}");

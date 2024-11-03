@@ -99,7 +99,7 @@ namespace Avatars
             var cameraWorldSize = m_camera.orthographicSize * 2;
             var pixelsPerUnit = m_settings.windowWidth / cameraWorldSize;
             var speed = m_avatarData.Animations[m_currentState][m_currentStateVariant].AvatarSpeed;
-            var dt = speed / pixelsPerUnit * Time.deltaTime;
+            var deltaTime = speed / pixelsPerUnit * Time.deltaTime;
             
             // var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * 10.0f * randomSpeed;
 
@@ -116,7 +116,7 @@ namespace Avatars
                 {
                     if (!m_isPursue)
                     {
-                        Move(dt);
+                        Move(deltaTime);
                         SetState();
                         PlayAnimation();
                     }
@@ -219,7 +219,7 @@ namespace Avatars
 
         void RandomMovement(float deltaTime)
         {
-            m_idleTime -= deltaTime;
+            m_idleTime -= Time.deltaTime;
             if (m_idleTime > 0.0f) return;
 
             transform.position = Vector3.MoveTowards(transform.position, m_randomTargetDirection, deltaTime);
@@ -228,7 +228,7 @@ namespace Avatars
                 if (m_avatarStates.ContainsKey(AvatarState.Idle) && Random.value > 0.75f)
                 {
                     m_randomTargetDirection = transform.position;
-                    m_idleTime = Random.Range(1.5f, 5.0f);
+                    m_idleTime = Random.Range(2.5f, 6.0f);
                     m_currentStateVariant = Random.Range(0, m_avatarStates[AvatarState.Idle].Length);
                 }
                 else
@@ -340,32 +340,6 @@ namespace Avatars
                 var spriteIndex = avatarAnimationData.AnimationIndices[m_currentFrame];
                 m_spriteRenderer.sprite = AvatarsStorage.GetSprites()[spriteIndex];
             }
-
-
-            // if (m_frameTime > 1.0f / 8.0f)
-            // {
-            //     m_frameTime = 0.0f;
-            //     m_currentFrame++;
-            //     if (m_currentFrame == m_avatarStates[m_currentState][m_currentStateVariant].AnimationIndices.Length)
-            //     {
-            //         m_currentFrame = 0;
-            //         // m_spriteRenderer.sprite = m_avatarsController.GetSprite(m_avatars[m_currentState][m_currentFrame]);
-            //         // return;
-            //     }
-            //
-            //     if (m_avatarStates.TryGetValue(m_currentState, out var variants))
-            //     {
-            //         var spriteIndex = variants[m_currentStateVariant].AnimationIndices[m_currentFrame];
-            //         var sprite = m_avatarsController.GetSprite(spriteIndex);
-            //         m_spriteRenderer.sprite = sprite;
-            //     }
-            //     else
-            //     {
-            //         Log.LogMessage($"{avatarName}: не имеет анимации '{m_currentState}' но она вызывается волшебным образом ;) ");
-            //     }
-            // }
-            //
-            // m_frameTime += Time.deltaTime * 1.45f;
         }
 
 

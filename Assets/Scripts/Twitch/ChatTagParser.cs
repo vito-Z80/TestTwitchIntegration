@@ -26,6 +26,7 @@ namespace Twitch
         const string ReturningChatter = "returning-chatter";
         const string UserColor = "color";
         const string CustomRewardId = "custom-reward-id";
+        const string MsgId = "msg-id"; //  msg-id=highlighted-message
 
         const string Badges = "badges"; //  Значки пользователя: badges=badge/number, badge/number, badge/number...
 
@@ -42,19 +43,18 @@ namespace Twitch
         const string HypeTrain = "hype-train"; //   Уровень Hype Train для зрителей, которые участвовали в Hype Train на канале.
 
 
-
         [ItemCanBeNull]
-        public Task<string>  GetTaggingWordWithoutTag(string tag, string chatMessage)
+        public Task<string> GetTaggingWordWithoutTag(string tag, string chatMessage)
         {
-            var  match = Regex.Match(chatMessage, $@"(?:^|\s){Regex.Escape(tag)}([A-Za-z0-9]+)\b");
+            var match = Regex.Match(chatMessage, $@"(?:^|\s){Regex.Escape(tag)}([A-Za-z0-9]+)\b");
             return Task.FromResult(match.Success ? match.Groups[1].Value : null);
         }
-        
+
         public string GetImageCommand()
         {
             return $@"{Regex.Escape(LocalStorage.GetSettings().imageNameTag)}{NamePattern}";
         }
-        
+
         public bool IsGreetingWordFound(string message)
         {
             var words = LocalStorage.GetGreetingsVariants();
@@ -86,6 +86,7 @@ namespace Twitch
 
         public bool IsReturnedChatter(string[] userMessageTags) => GetValueByChatTag(ReturningChatter, userMessageTags) != Zero;
         public string GetRewardId(string[] userMessageTags) => GetValueByChatTag(CustomRewardId, userMessageTags);
+        public string GetMsgId(string[] userMessageTags) => GetValueByChatTag(MsgId, userMessageTags);
         public string GetUserName(string[] userMessageTags) => GetValueByChatTag(DisplayName, userMessageTags);
 
         public Color GetUserColor(string[] userMessageTags)

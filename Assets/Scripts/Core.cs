@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Data;
 using Twitch;
 using UI;
@@ -67,13 +68,14 @@ public class Core : MonoBehaviour
     }
 
 
-    async void Start()
+     void Start()
     {
         // PlayerPrefs.DeleteAll();
         connectPanel.gameObject.SetActive(false);
         Application.runInBackground = true;
         m_connect = new Connect(connectPanel);
-        await m_connect.AutoConnectTwitch();
+        Task.FromResult(m_connect.AutoConnectTwitch());     //  its legal here ?
+        // await m_connect.AutoConnectTwitch();
         Application.targetFrameRate = 60;
     }
 

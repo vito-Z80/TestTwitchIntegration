@@ -14,6 +14,10 @@ namespace Twitch
         public static Action<string, string> OnAvatarPursuit;
         public static Action<ChatUserData> OnSayHello;
         public static event Action<string> OnImageShown;
+        public static event Action<string,string> OnHighlightedMessage;
+
+
+        const string HighlightedMsg = "highlighted-message";
 
         readonly ChatTagParser m_parser = new();
 
@@ -30,12 +34,14 @@ namespace Twitch
 
             var chatTagsParts = chatTags.Split(';', StringSplitOptions.RemoveEmptyEntries);
             var userName = m_parser.GetUserName(chatTagsParts);
-
-
+            
             await CreateUserData(userName, chatTagsParts);
 
             if (userName != null)
             {
+                
+                HighlightedMessage(userName, chatMessage);
+                
                 if (m_settings.useAvatars)
                 {
                     await AttackUser(userName, chatMessage);
@@ -61,11 +67,13 @@ namespace Twitch
             var firstMessage = m_parser.IsFirstMessage(message);
             var nameColor = settings.displayNicknameColor ? m_parser.GetUserColor(message) : Color.white;
             var rewardId = m_parser.GetRewardId(message);
+            var msgId = m_parser.GetMsgId(message);
 
             if (m_chatters.TryGetValue(userName, out var userData))
             {
                 userData.CustomRewardId = rewardId;
                 userData.IsFirstMessage = firstMessage;
+                userData.MsgId = msgId;
             }
             else
             {
@@ -135,5 +143,17 @@ namespace Twitch
             var result = Task.FromResult(userData != null && userData.DidSayHello);
             return result;
         }
+
+        void HighlightedMessage(string userName, string message)
+        {
+            if (m_chatters.TryGetValue(message, out var userData))
+            {
+                if (userData.MsgId == HighlightedMsg)
+                {
+                    OnHighlightedMessage?.Invoke(userName, message);
+                }
+            }
+        }
+        
     }
 }

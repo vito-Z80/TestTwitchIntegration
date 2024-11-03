@@ -56,5 +56,10 @@ namespace UI
             channelName.gameObject.SetActive(false);
             connectButton.enabled = true;
         }
+        
+        public void SetVisibility()
+        {
+            gameObject.SetActive(!gameObject.activeSelf);
+        }
     }
 }
