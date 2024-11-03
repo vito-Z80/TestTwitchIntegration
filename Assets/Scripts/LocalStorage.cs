@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Avatars;
 using Data;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -126,23 +127,30 @@ public static class LocalStorage
         Log.LogMessage($"Saved avatars data: {path}");
     }
 
+    [CanBeNull]
     public static Dictionary<string, AvatarData> LoadAvatarsData()
     {
         var path = $"{Application.streamingAssetsPath}/{AvatarsFolder}/avatars.json";
         var json = File.ReadAllText(path);
         var avatarsData = JsonConvert.DeserializeObject<Dictionary<string, AvatarData>>(json);
+        Log.LogMessage($"Loaded avatars data: {path}");
         return avatarsData;
     }
 
     //  utils
 
-    static void SaveLastWriteTimeFolder(string path)
+    static void SaveLastWriteTimeAvatarFolder(string path)
     {
         var ticks = Directory.GetLastWriteTime(path).Ticks.ToString();
         PlayerPrefs.SetString(LastWriteTimeAvatarFolderKey, ticks);
     }
 
-    public static bool IsFolderWriteTimeMatched(string path)
+    /// <summary>
+    /// Были ли изменения в папке Avatar
+    /// </summary>
+    /// <param name="path">Путь папки.</param>
+    /// <returns>true - Если папка не была изменена (ничего в ней не добавилось, не удалилось.)</returns>
+    public static bool IsAvatarFolderNotChanged(string path)
     {
         if (PlayerPrefs.HasKey(LastWriteTimeAvatarFolderKey))
         {
@@ -161,7 +169,7 @@ public static class LocalStorage
         }
 
         Log.LogMessage($"The folder time was checked for the first time.: {path}");
-        SaveLastWriteTimeFolder(path);
+        SaveLastWriteTimeAvatarFolder(path);
         return false;
     }
 }

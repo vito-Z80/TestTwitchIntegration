@@ -14,6 +14,11 @@ namespace Avatars
         Sprite[] m_sprites;
 
 
+
+        /// <summary>
+        /// Загрузить атлас и uvRects с локального диска.
+        /// </summary>
+        /// <returns>True - атлас и uvRects получены, спрайты сгенерированы.</returns>
         public bool UseLocalAtlas()
         {
             LocalStorage.LoadAtlasData(out m_atlasTexture, out m_uvRects);

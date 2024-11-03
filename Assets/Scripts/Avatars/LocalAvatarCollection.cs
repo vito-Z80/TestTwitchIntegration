@@ -19,34 +19,36 @@ namespace Avatars
         {
             m_textureCounter = 0;
             var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{LocalStorage.AvatarsFolder}");
-            
-            
-            //  TODO атлас не обновляется при удалении папки в автарах. 03.11.2024 3:53:54: The number of uv textures does not match the number of pixels of the atlas. Too many images did not fit into the 4096x4096 atlas. The number of uv textures: 73
+
+
+            //  TODO атлас не обновляется при удалении папки в аватарах. 03.11.2024 3:53:54: The number of uv textures does not match the number of pixels of the atlas. Too many images did not fit into the 4096x4096 atlas. The number of uv textures: 73
             //  атлас всегда загружается и видимо юзаются его данные. 03.11.2024 3:53:54: Loaded 85 UV Rects for atlas: C:\projects\unity\Twitch\Test\TestTwitchIntegration\Assets\StreamingAssets\Graphics\Avatars\atlasRects.json
             //  нужно подменять данные аватаров при пересоздании аталаса.
-            
-            
-            
+
+
             m_avatarsAtlas = new AvatarsAtlas();
-            if (m_avatarsAtlas.UseLocalAtlas() && LocalStorage.IsFolderWriteTimeMatched(path))
+            var avatarsData = LocalStorage.LoadAvatarsData() ?? new Dictionary<string, AvatarData>();
+
+            if (LocalStorage.IsAvatarFolderNotChanged(path))
             {
-                var avatarsData = LocalStorage.LoadAvatarsData();
-                if (avatarsData != null)
+                if (m_avatarsAtlas.UseLocalAtlas())
                 {
-                    Log.LogMessage($"Loading local avatars atlas data.");
-                    return avatarsData;
+                    if (avatarsData.Count > 0)
+                    {
+                        Log.LogMessage($"Loading local avatars atlas data.");
+                        return avatarsData;
+                    }
                 }
             }
-
-            //  dict<avatarName, dict<state, indices>>; state = left, right, idle, attack...;  indices = uv region indices
-            Dictionary<string, AvatarData> avatars = new Dictionary<string, AvatarData>();
+            
             //  имена папок аватаров
             var avatarFolderPaths = Utils.GetDirectory(path);
             foreach (var avatarFolder in avatarFolderPaths)
             {
-                var avatarData = GetLocalJson(avatarFolder);
+                
                 var avtarStates = AvatarVariants(Utils.GetDirectory(avatarFolder));
                 var avatarName = Path.GetFileName(avatarFolder).ToLower();
+                var avatarData = GetLocalJson(avatarFolder);
                 if (avatarData == null)
                 {
                     if (avtarStates != null)
@@ -57,17 +59,17 @@ namespace Avatars
                             Animations = avtarStates,
                             Path = avatarFolder,
                         };
-                        avatars.Add(avatarName, avatarData);
+                        avatarsData.Add(avatarName, avatarData);
                     }
                 }
                 else
                 {
-                    avatars.Add(avatarName, avatarData);
+                    avatarsData.Add(avatarName, avatarData);
                 }
             }
 
             //  add missing data
-            foreach (var avatar in avatars.Values)
+            foreach (var avatar in avatarsData.Values)
             {
                 var avatarStateKeys = avatar.Animations.Keys;
                 var keysFlag = (int)avatarStateKeys.Aggregate((acc, num) => acc | num);
@@ -111,9 +113,9 @@ namespace Avatars
                         break;
                 }
             }
-            
+
             m_avatarsAtlas.GenerateAtlas(m_textures);
-            return avatars;
+            return avatarsData;
         }
 
         [CanBeNull]
@@ -125,7 +127,7 @@ namespace Avatars
                 var json = File.ReadAllText(filePath);
                 return JsonConvert.DeserializeObject<AvatarData>(json);
             }
-
+        
             return null;
         }
 
