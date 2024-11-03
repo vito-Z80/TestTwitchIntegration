@@ -88,6 +88,10 @@ public static class LocalStorage
         var json = JsonConvert.SerializeObject(uvRects);
         File.WriteAllText(rectsPath, json);
         Log.LogMessage($"Saved {uvRects.Length} UV rects for atlas: {rectsPath}");
+        //  всегда нужно менять время последнего изменения в папке аватаров, потому что после проверки этого времени были
+        //      сохранены атлас и uv, тем самым время изменилось...  я хрен пойму потом что я тут написал...
+        SaveLastWriteTimeAvatarFolder();
+        Log.LogMessage($"Было обновлено последнее время изменения в папке Аватаров, так как был пересоздан атлас и uv.");
     }
 
 
@@ -139,8 +143,9 @@ public static class LocalStorage
 
     //  utils
 
-    static void SaveLastWriteTimeAvatarFolder(string path)
+    static void SaveLastWriteTimeAvatarFolder()
     {
+        var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}");
         var ticks = Directory.GetLastWriteTime(path).Ticks.ToString();
         PlayerPrefs.SetString(LastWriteTimeAvatarFolderKey, ticks);
     }
@@ -150,8 +155,9 @@ public static class LocalStorage
     /// </summary>
     /// <param name="path">Путь папки.</param>
     /// <returns>true - Если папка не была изменена (ничего в ней не добавилось, не удалилось.)</returns>
-    public static bool IsAvatarFolderNotChanged(string path)
+    public static bool IsAvatarFolderNotChanged()
     {
+        var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}");
         if (PlayerPrefs.HasKey(LastWriteTimeAvatarFolderKey))
         {
             var currentTicks = Directory.GetLastWriteTime(path).Ticks.ToString();
@@ -169,7 +175,7 @@ public static class LocalStorage
         }
 
         Log.LogMessage($"The folder time was checked for the first time.: {path}");
-        SaveLastWriteTimeAvatarFolder(path);
+        SaveLastWriteTimeAvatarFolder();
         return false;
     }
 }

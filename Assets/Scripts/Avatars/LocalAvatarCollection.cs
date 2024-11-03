@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Data;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Avatars
@@ -27,43 +26,37 @@ namespace Avatars
 
 
             m_avatarsAtlas = new AvatarsAtlas();
-            var avatarsData = LocalStorage.LoadAvatarsData() ?? new Dictionary<string, AvatarData>();
+            var existingData = LocalStorage.LoadAvatarsData();
 
-            if (LocalStorage.IsAvatarFolderNotChanged(path))
+            if (LocalStorage.IsAvatarFolderNotChanged())
             {
                 if (m_avatarsAtlas.UseLocalAtlas())
                 {
-                    if (avatarsData.Count > 0)
+                    if (existingData != null)
                     {
                         Log.LogMessage($"Loading local avatars atlas data.");
-                        return avatarsData;
+                        return existingData;
                     }
                 }
             }
-            
+
+            var avatarsData = new Dictionary<string, AvatarData>();
             //  имена папок аватаров
             var avatarFolderPaths = Utils.GetDirectory(path);
             foreach (var avatarFolder in avatarFolderPaths)
             {
-                
-                var avtarStates = AvatarVariants(Utils.GetDirectory(avatarFolder));
                 var avatarName = Path.GetFileName(avatarFolder).ToLower();
-                var avatarData = GetLocalJson(avatarFolder);
-                if (avatarData == null)
+
+                var avatarVariants = AvatarVariants(Utils.GetDirectory(avatarFolder));
+                if (avatarVariants != null)
                 {
-                    if (avtarStates != null)
+                    //  create new if states exists
+                    var avatarData = new AvatarData
                     {
-                        avatarData = new AvatarData
-                        {
-                            AvatarName = avatarName,
-                            Animations = avtarStates,
-                            Path = avatarFolder,
-                        };
-                        avatarsData.Add(avatarName, avatarData);
-                    }
-                }
-                else
-                {
+                        AvatarName = avatarName,
+                        Animations = avatarVariants,
+                        Path = avatarFolder,
+                    };
                     avatarsData.Add(avatarName, avatarData);
                 }
             }
@@ -115,20 +108,56 @@ namespace Avatars
             }
 
             m_avatarsAtlas.GenerateAtlas(m_textures);
+            if (existingData != null)
+            {
+                UpgradeAvatarsData(avatarsData, existingData);
+            }
+
             return avatarsData;
         }
 
-        [CanBeNull]
-        AvatarData GetLocalJson(string avatarFolder)
+
+        void UpgradeAvatarsData(Dictionary<string, AvatarData> newData, Dictionary<string, AvatarData> existingData)
         {
-            var filePath = Utils.NormalizePath($"{avatarFolder}/data.json");
-            if (File.Exists(filePath))
+            foreach (var (newAvatarName, newAvatarData) in newData)
             {
-                var json = File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<AvatarData>(json);
+                if (existingData.TryGetValue(newAvatarName, out var existingAvatarData))
+                {
+                    //  Обновляем поля AvatarData
+                    newAvatarData.Access = existingAvatarData.Access;
+                    
+                    var newAvatarsAnimationStates = newAvatarData.Animations.Keys.ToArray();
+                    foreach (var newAvatarsAnimationState in newAvatarsAnimationStates)
+                    {
+                        if (existingAvatarData.Animations.TryGetValue(newAvatarsAnimationState, out var existingAnimationData))
+                        {
+                            Log.LogMessage($"Upgrading avatar {newAvatarName} to animation: {newAvatarsAnimationState}");
+                            var newAnimationData = newData[newAvatarName].Animations[newAvatarsAnimationState];
+                            UpgradeAnimationsData(newAnimationData, existingAnimationData);
+                        }
+                    }
+                }
+                else
+                {
+                    Log.LogMessage($"Adding avatar {newAvatarName} with animations: {string.Join(", ", newAvatarData.Animations.Keys)}");
+                }
             }
-        
-            return null;
+        }
+
+
+        void UpgradeAnimationsData(AvatarAnimationData[] newAnimationsData, AvatarAnimationData[] existingAnimationsData)
+        {
+            foreach (var nData in newAnimationsData)
+            {
+                var existingData = existingAnimationsData.FirstOrDefault(ead => ead.SubName == nData.SubName);
+                if (existingData != null)
+                {
+                    //  Обновляем поля AvatarAnimationData
+                    nData.AnimationSpeed = existingData.AnimationSpeed;
+                    nData.AvatarSpeed = existingData.AvatarSpeed;
+                    Log.LogMessage($"Upgrading subAnimation {nData.SubName}");
+                }
+            }
         }
 
         void CopyMissingAvatarData(AvatarData avatarData, AvatarState existingState, AvatarState newState, bool flipX = false)
@@ -167,36 +196,45 @@ namespace Avatars
             var dict = new Dictionary<AvatarState, AvatarAnimationData[]>();
 
             var nestedFolders = new List<string>();
-            //  имена папок вариантов одной анимации (idle, left, right...)
+            //  имена папок вариантов одной из анимаций (idle, left, right...)
             foreach (var folder in folders)
             {
                 nestedFolders.Clear();
                 ProcessDirectory(folder, nestedFolders);
                 var subAnimations = new List<AvatarAnimationData>();
-
+                var defaultFolderName = Path.GetFileName(folder);
                 foreach (var folderPath in nestedFolders)
                 {
                     var texIndices = new List<int>();
                     CollectTexturesByPath(folderPath, texIndices);
 
-                    var defaultFolderName = Path.GetFileName(folder);
+
                     var nestedFolderName = Path.GetFileName(folderPath);
 
 
                     if (texIndices.Count > 0)
                     {
-                        var aad = new AvatarAnimationData
+                        var newAnimationData = new AvatarAnimationData
                         {
                             AnimationIndices = texIndices.ToArray(),
                             SubName = defaultFolderName == nestedFolderName ? "Default variant" : nestedFolderName,
+                            // SubName =  nestedFolderName,
                         };
-                        subAnimations.Add(aad);
+
+                        // var existingAnimationData = existingAnimationStates?
+                        //     .FirstOrDefault(state => state.Key == GetAvatarState(defaultFolderName)).Value?
+                        //     .FirstOrDefault(data => data.SubName == nestedFolderName);
+                        // //  upgrade animation variant data.
+                        // newAnimationData.AnimationSpeed = existingAnimationData?.AnimationSpeed ?? 12.0f;
+                        // newAnimationData.AvatarSpeed = existingAnimationData?.AvatarSpeed ?? 60.0f;
+
+                        subAnimations.Add(newAnimationData);
                     }
                 }
 
                 if (subAnimations.Count > 0)
                 {
-                    dict.Add(GetAvatarState(folder.Split("\\").Last()), subAnimations.ToArray());
+                    dict.Add(GetAvatarState(defaultFolderName), subAnimations.ToArray());
                 }
             }
 
