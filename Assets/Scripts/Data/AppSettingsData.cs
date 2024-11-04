@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using TMPro;
 
 namespace Data
 {
@@ -35,5 +36,9 @@ namespace Data
         
         [JsonProperty("at")] public string avatarNameTag = "!";
         [JsonProperty("it")] public string imageNameTag = "!";
+        
+        
+        [JsonProperty("gia")] public TMP_Compatibility.AnchorPositions? greetingsImageAnchor;
+        [JsonProperty("gis")] public float greetingsImageSize = 0.1f;
     }
 }
