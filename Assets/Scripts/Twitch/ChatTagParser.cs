@@ -112,6 +112,7 @@ namespace Twitch
             var isPremium = GetValueByChatTag(Premium, badges, Separator) != Zero;
             var isStuff = GetValueByChatTag(Stuff, badges, Separator) != Zero;
             var isAdmin = GetValueByChatTag(Admin, badges, Separator) != Zero;
+            var isSubscriber = subscriberLevel != 0;
 
             data.SubscriberLevel = subscriberLevel;
             data.Bits = bits;
@@ -123,6 +124,7 @@ namespace Twitch
             data.IsPremium = isPremium;
             data.IsStuff = isStuff;
             data.IsAdmin = isAdmin;
+            data.IsSubscriber = isSubscriber;
         }
 
         string GetValueByChatTag(string tag, string[] splittingMessage, char separator = '=')

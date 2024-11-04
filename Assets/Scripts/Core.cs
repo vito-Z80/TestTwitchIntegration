@@ -69,7 +69,7 @@ public class Core : MonoBehaviour
 
 
      void Start()
-    {
+     {
         // PlayerPrefs.DeleteAll();
         connectPanel.gameObject.SetActive(false);
         Application.runInBackground = true;

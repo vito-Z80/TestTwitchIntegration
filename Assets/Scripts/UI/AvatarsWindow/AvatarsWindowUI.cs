@@ -10,23 +10,24 @@ namespace UI.AvatarsWindow
 {
     public class AvatarsWindowUI : MonoBehaviour
     {
-        [SerializeField] TMP_Dropdown avatarsList;
+        [Header("Dropdown")] [SerializeField] TMP_Dropdown avatarsList;
         [SerializeField] TMP_Dropdown avatarStates;
         [SerializeField] TMP_Dropdown avatarStateVariant;
 
-        [SerializeField] Image avatarImage;
+        [Header("Images")] [SerializeField] Image avatarImage;
         [SerializeField] Image avatarImageFrame;
 
-        [SerializeField] AvatarAnimationSpeedSliderUI animationSpeedSlider;
+        [Header("Sliders")] [SerializeField] AvatarAnimationSpeedSliderUI animationSpeedSlider;
         [SerializeField] AvatarAnimationSpeedInputUI animationSpeedInput;
         [SerializeField] AvatarMovementSpeedSliderUI avatarMovementSpeedSlider;
         [SerializeField] AvatarMovementSpeedInputUI avatarMovementSpeedInput;
 
+        [Header("Toggles")] [SerializeField] AvatarAccessTogglesUI accessToggles;
 
         const float FrameSizeOffset = 12.0f;
 
-        float m_sizeForDisplay = 32.0f;
-        
+        float m_avatarVisibilitySize = 32.0f;
+
         public static event Action<string> OnAvatarChanged;
 
         AvatarData m_avatarData;
@@ -81,6 +82,7 @@ namespace UI.AvatarsWindow
             RefreshAvatarStates();
             RefreshAvatarStateVariant();
             SelectAvatarVariant(0);
+            accessToggles.SetToggleValues(m_avatarData);
             OnAvatarChanged?.Invoke(m_avatarData.AvatarName);
         }
 
@@ -133,8 +135,8 @@ namespace UI.AvatarsWindow
 
         void SizeCorrection(Sprite sprite)
         {
-            var width = sprite.bounds.size.x * m_sizeForDisplay;
-            var height = sprite.bounds.size.y * m_sizeForDisplay;
+            var width = sprite.bounds.size.x * m_avatarVisibilitySize;
+            var height = sprite.bounds.size.y * m_avatarVisibilitySize;
             var imageSize = new Vector2(width, height);
             var imageFrameSize = new Vector2(width + FrameSizeOffset, height + FrameSizeOffset);
             avatarImage.rectTransform.sizeDelta = imageSize;
@@ -147,12 +149,17 @@ namespace UI.AvatarsWindow
             return AvatarsStorage.GetAvatarData(avatarName);
         }
 
+        public void OnAccessTogglesValueChanged()
+        {
+            m_avatarData.Access = Utils.GetAccessValue(accessToggles.GetUserData());
+        }
+
         void Update()
         {
             if (m_animationIndices == null) return;
             PlayAnimationVariant();
         }
-        
+
         public void SetVisibility()
         {
             gameObject.SetActive(!gameObject.activeSelf);

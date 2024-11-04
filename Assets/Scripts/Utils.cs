@@ -63,4 +63,51 @@ public static class Utils
     {
         return uvRects.Select(r => new Rect(r.x, r.y, r.width, r.height)).ToArray();
     }
+
+
+    public static ChatUserData DisassembleAccessValue(int avatarAccess)
+    {
+        var userdata = new ChatUserData
+        {
+            IsModerator = GetAccessBit(ChatterStatus.Moderator),
+            IsPartner = GetAccessBit(ChatterStatus.Partner),
+            IsPremium = GetAccessBit(ChatterStatus.Premium),
+            IsAdmin = GetAccessBit(ChatterStatus.Admin),
+            IsStuff = GetAccessBit(ChatterStatus.Stuff),
+            IsVip = GetAccessBit(ChatterStatus.Vip),
+            IsSubscriber = GetAccessBit(ChatterStatus.Subscriber)
+        };
+        return userdata;
+
+        bool GetAccessBit(ChatterStatus chatterStatus)
+        {
+            return (avatarAccess & (int)chatterStatus) == (int)chatterStatus;
+        }
+    }
+
+    public static bool AccessSuccess(int avatarAccess, ChatUserData chatUserData)
+    {
+        if (avatarAccess == 0) return true;
+        var userAccess = GetAccessValue(chatUserData);
+        return (userAccess & avatarAccess) > 0;
+    }
+
+    public static int GetAccessValue(ChatUserData chatUserData)
+    {
+        var access = 0;
+
+        SetAccessBit(chatUserData.IsModerator, ChatterStatus.Moderator);
+        SetAccessBit(chatUserData.IsPartner, ChatterStatus.Partner);
+        SetAccessBit(chatUserData.IsPremium, ChatterStatus.Premium);
+        SetAccessBit(chatUserData.IsAdmin, ChatterStatus.Admin);
+        SetAccessBit(chatUserData.IsStuff, ChatterStatus.Stuff);
+        SetAccessBit(chatUserData.IsVip, ChatterStatus.Vip);
+        SetAccessBit(chatUserData.IsSubscriber, ChatterStatus.Subscriber);
+        return access;
+
+        void SetAccessBit(bool prev, ChatterStatus chatterStatus)
+        {
+            if (prev) access |= (int)chatterStatus;
+        }
+    }
 }

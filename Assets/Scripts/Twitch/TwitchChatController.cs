@@ -59,7 +59,7 @@ namespace Twitch
                 }
             }
         }
-
+        
         Task CreateUserData(string userName, string[] message)
         {
             var settings = LocalStorage.GetSettings();
@@ -84,9 +84,9 @@ namespace Twitch
                     IsReturningChatter = m_parser.IsReturnedChatter(message),
                     Color = nameColor,
                 };
-                m_parser.SetBadges(userData, message);
                 m_chatters.Add(userName, userData);
             }
+            m_parser.SetBadges(userData, message);
 
             return Task.CompletedTask;
         }
@@ -116,9 +116,6 @@ namespace Twitch
         {
             m_chatters.TryGetValue(userName, out var userData);
             if (userData == null) return;
-
-            if (LocalStorage.GetSettings().avatarSubscribersOnly && userData.SubscriberLevel == 0) return;
-
             var avatarName = await m_parser.GetTaggingWordWithoutTag(LocalStorage.GetSettings().avatarNameTag, message);
             if (avatarName != null)
             {

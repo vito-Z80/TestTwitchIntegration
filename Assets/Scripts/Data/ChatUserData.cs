@@ -18,6 +18,7 @@ namespace Data
         public bool IsAdmin;
         public bool IsStuff;
         public bool IsVip;
+        public bool IsSubscriber;
         public int SubscriberLevel;
         public int Bits;
         public int FounderNumber;

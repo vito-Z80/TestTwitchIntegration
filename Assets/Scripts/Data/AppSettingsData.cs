@@ -26,7 +26,7 @@ namespace Data
         [JsonProperty("ps")] public bool pixelSnapping;
         [JsonProperty("r")] public bool randomSpeedEnabled;
 
-        [JsonProperty("so")] public bool avatarSubscribersOnly;
+        // [JsonProperty("so")] public bool avatarSubscribersOnly;
         [JsonProperty("nc")] public bool displayNicknameColor = true;
         
         [JsonProperty("ua")] public bool useAvatars = true;

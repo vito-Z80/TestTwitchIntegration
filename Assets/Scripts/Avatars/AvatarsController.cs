@@ -64,33 +64,32 @@ namespace Avatars
         {
             // TODO пул аватаров...
 
+            var avatarData = AvatarsStorage.GetAvatarData(avatarName);
+            if (avatarData == null) return;
+            if (!Utils.AccessSuccess(avatarData.Access, userData)) return;
+
             var userName = userData.UserName;
             if (m_avatars.TryGetValue(userName, out var existingAvatar))
             {
                 if (existingAvatar.avatarName == avatarName) return;
-                var avatarData = AvatarsStorage.GetAvatarData(avatarName);
-                if (avatarData != null)
-                {
-                    m_avatars[userName].Init( avatarName,  avatarData);
-                    m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userData);
-                }
+                m_avatars[userName].Init(avatarName, avatarData);
+                m_names[userName].SetTargetAvatar(m_avatars[userName], canvas, m_camera, userData);
             }
             else
             {
-                if (CreateAvatar(userName, avatarName, Vector3.zero))
+                if (CreateAvatar(avatarData, userName, Vector3.zero))
                 {
                     CreateUserName(userData);
                 }
             }
         }
 
-        bool CreateAvatar(string userName, string avatarName, Vector3 position)
+        bool CreateAvatar(AvatarData avatarData, string userName, Vector3 position)
         {
-            var avatarData = AvatarsStorage.GetAvatarData(avatarName);
             if (avatarData != null)
             {
                 var newAvatar = Instantiate(avatarPrefab, position, Quaternion.identity, transform).GetComponent<Avatar>();
-                newAvatar.Init( avatarName,  avatarData);
+                newAvatar.Init(avatarData.AvatarName, avatarData);
                 m_avatars[userName] = newAvatar;
                 return true;
             }
@@ -114,18 +113,22 @@ namespace Avatars
             {
                 for (var i = 0; i < 20; i++)
                 {
-                    
                     var testUserData = new ChatUserData
                     {
                         UserName = $"test_name_{i}",
                         Color = Color.white,
-                        IsModerator = false,
-                        SubscriberLevel = 0,
+                        IsModerator = true,
+                        IsPartner = true,
+                        IsSubscriber = true,
+                        IsAdmin = true,
+                        IsPremium = true,
+                        IsStuff = true,
+                        IsVip = true,
+                        SubscriberLevel = 100,
                         IsFirstMessage = false,
                         IsReturningChatter = true,
-                        
                     };
-                    
+
                     StartAvatar(testUserData, avatarName);
                 }
             }

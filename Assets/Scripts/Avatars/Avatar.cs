@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Data;
-using UI;
 using UI.AvatarAreaWindow;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -24,7 +23,6 @@ namespace Avatars
 
         float m_angle;
         float m_leaveTime; //  время до уничтожения аватара
-        float m_frameTime; //  время кадра анимации
         float m_idleTime; //  время idle анимации
         float m_flyCurrentSpeed; // Текущая скорость атакованной цели
 
@@ -45,7 +43,7 @@ namespace Avatars
 
         Avatar m_targetAvatar;
 
-        public AvatarState m_currentState;
+        AvatarState m_currentState;
         int m_currentStateVariant = 0;
         Rect m_flyArea;
 
@@ -358,7 +356,7 @@ namespace Avatars
                 }
 
                 distance = Vector3.Distance(transform.position, m_targetAvatar.transform.position);
-                var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime ;
+                var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime;
                 direction = (m_targetAvatar.transform.position - transform.position).normalized;
                 transform.position += direction * deltaTime;
                 SetState();
@@ -374,7 +372,6 @@ namespace Avatars
             //  анимации атаки.
             var lastState = m_currentState;
             m_currentState = m_currentState == AvatarState.Left ? AvatarState.AttackLeft : AvatarState.AttackRight;
-            m_frameTime = 0.0f;
             m_currentFrame = 0;
             while (PlayAnimationOnce())
             {
