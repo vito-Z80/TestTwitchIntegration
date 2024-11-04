@@ -95,12 +95,12 @@ namespace Avatars
             if (m_avatarStates == null) return;
             SetAreaVerticalOffset();
             SetRandomSpeed();
-            
+
             var cameraWorldSize = m_camera.orthographicSize * 2;
             var pixelsPerUnit = m_settings.windowWidth / cameraWorldSize;
             var speed = m_avatarData.Animations[m_currentState][m_currentStateVariant].AvatarSpeed;
             var deltaTime = speed / pixelsPerUnit * Time.deltaTime;
-            
+
             // var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * 10.0f * randomSpeed;
 
             m_leaveTime += Time.deltaTime;
@@ -125,7 +125,7 @@ namespace Avatars
 
             if (m_gotHit)
             {
-                Fly();
+                Fly(deltaTime);
                 if (m_flyCurrentSpeed <= 0.0f)
                 {
                     m_wasAttacked = false;
@@ -170,9 +170,9 @@ namespace Avatars
             }
         }
 
-        void Fly()
+        void Fly(float deltaTime)
         {
-            var deltaTime = Time.deltaTime * 4.0f;
+            deltaTime *= 2.0f;
             var size = Core.Instance.WorldSize;
             m_flyArea.position = (Vector2)m_pixelPerfectCamera.transform.position - size * 0.5f;
             m_flyArea.size = size;
@@ -204,10 +204,6 @@ namespace Avatars
                 }
 
                 m_flyCurrentSpeed -= FlyDeceleration * Time.deltaTime;
-                // if (m_flyCurrentSpeed < 0)
-                // {
-                //     m_flyCurrentSpeed = 0;
-                // }
             }
         }
 
@@ -286,34 +282,31 @@ namespace Avatars
 
         bool PlayAnimationOnce()
         {
-            if (m_frameTime > 1.0f / 8.0f)
+            if (m_avatarStates.TryGetValue(m_currentState, out var variants))
             {
-                if (m_currentFrame + 1 == m_avatarStates[m_currentState][m_currentStateVariant].AnimationIndices.Length)
+                var avatarAnimationData = variants[m_currentStateVariant];
+                var animationFrameTime = 1.0f / avatarAnimationData.AnimationSpeed;
+                m_accumulatedTime += Time.deltaTime;
+
+                if (m_accumulatedTime < animationFrameTime)
                 {
+                    return true;
+                }
+
+                m_accumulatedTime -= animationFrameTime;
+                m_currentFrame++;
+                if (m_currentFrame >= avatarAnimationData.AnimationIndices.Length)
+                {
+                    m_currentFrame = 0;
                     return false;
                 }
 
-                m_frameTime = 0.0f;
-                m_currentFrame++;
-
-                if (m_avatarStates.TryGetValue(m_currentState, out var variants))
-                {
-                    var spriteIndex = variants[m_currentStateVariant].AnimationIndices[m_currentFrame];
-                    var sprite = AvatarsStorage.GetSprites()[spriteIndex];
-                    m_spriteRenderer.sprite = sprite;
-                }
-                else
-                {
-                    Log.LogMessage($"{avatarName}: не имеет анимации '{m_currentState}' но она вызывается волшебным образом ;) ");
-                }
-
-                // var frameId = m_avatarStates[m_currentState][m_currentFrame];
-                // var sprite = m_avatarsController.GetSprite(frameId);
-                // m_spriteRenderer.sprite = sprite;
+                var spriteIndex = avatarAnimationData.AnimationIndices[m_currentFrame];
+                m_spriteRenderer.sprite = AvatarsStorage.GetSprites()[spriteIndex];
+                return true;
             }
 
-            m_frameTime += Time.deltaTime * 1.45f;
-            return true;
+            return false;
         }
 
 
@@ -365,10 +358,9 @@ namespace Avatars
                 }
 
                 distance = Vector3.Distance(transform.position, m_targetAvatar.transform.position);
-                var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime * 2.0f;
+                var deltaTime = 1.0f / m_pixelPerfectCamera.assetsPPU * 60.0f * Time.deltaTime ;
                 direction = (m_targetAvatar.transform.position - transform.position).normalized;
                 transform.position += direction * deltaTime;
-                // m_currentState = direction.x <= 0.0f ? AvatarState.Left : AvatarState.Right;
                 SetState();
 
 
@@ -409,7 +401,7 @@ namespace Avatars
         void GotHit(Vector3 direction)
         {
             m_gotHit = true;
-            m_flyCurrentSpeed = 7.0f;
+            m_flyCurrentSpeed = 11.0f;
             m_flyDirection = direction;
         }
 
