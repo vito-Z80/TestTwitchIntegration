@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.GreetingsWindow
+namespace UI.Greetings
 {
     public class UseGreetingsToggleUI : MonoBehaviour
     {

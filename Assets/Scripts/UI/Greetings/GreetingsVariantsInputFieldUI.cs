@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 
-namespace UI.GreetingsWindow
+namespace UI.Greetings
 {
     public class GreetingsVariantsInputFieldUI : MonoBehaviour
     {
