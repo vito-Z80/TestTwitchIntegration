@@ -40,5 +40,7 @@ namespace Data
         
         [JsonProperty("gia")] public TMP_Compatibility.AnchorPositions? greetingsImageAnchor;
         [JsonProperty("gis")] public float greetingsImageSize = 0.1f;
+        [JsonProperty("gip")] public string greetingsImagePath = "";
+        [JsonProperty("gap")] public string greetingsAudioPath = "";
     }
 }

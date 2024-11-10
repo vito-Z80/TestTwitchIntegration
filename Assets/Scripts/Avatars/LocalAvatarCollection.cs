@@ -17,7 +17,7 @@ namespace Avatars
         public Dictionary<string, AvatarData> GenerateAvatars()
         {
             m_textureCounter = 0;
-            var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{LocalStorage.AvatarsFolder}");
+            var path = LocalStorage.NormalizePath($"{Application.streamingAssetsPath}/{LocalStorage.AvatarsFolder}");
 
 
             //  TODO атлас не обновляется при удалении папки в аватарах. 03.11.2024 3:53:54: The number of uv textures does not match the number of pixels of the atlas. Too many images did not fit into the 4096x4096 atlas. The number of uv textures: 73
@@ -42,12 +42,12 @@ namespace Avatars
 
             var avatarsData = new Dictionary<string, AvatarData>();
             //  имена папок аватаров
-            var avatarFolderPaths = Utils.GetDirectory(path);
+            var avatarFolderPaths = LocalStorage.GetDirectory(path);
             foreach (var avatarFolder in avatarFolderPaths)
             {
                 var avatarName = Path.GetFileName(avatarFolder).ToLower();
 
-                var avatarVariants = AvatarVariants(Utils.GetDirectory(avatarFolder));
+                var avatarVariants = AvatarVariants(LocalStorage.GetDirectory(avatarFolder));
                 if (avatarVariants != null)
                 {
                     //  create new if states exists
@@ -180,7 +180,7 @@ namespace Avatars
         void ProcessDirectory(string path, List<string> filesByDirectory)
         {
             filesByDirectory.Add(Path.GetFullPath(path));
-            foreach (var directory in Utils.GetDirectory(path))
+            foreach (var directory in LocalStorage.GetDirectory(path))
             {
                 ProcessDirectory(directory, filesByDirectory);
             }

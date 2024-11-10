@@ -37,10 +37,10 @@ namespace UI.Greetings
             var textPosition = new Vector2(0.0f, -m_settings.windowHeight / 2.0f - m_rectTransform.sizeDelta.y / 2.0f);
             m_rectTransform.anchoredPosition = textPosition;
             m_textTargetPosition = Vector2.zero;
-            _ = PlayGreetingsTextCoroutine();
+            _ = PlayGreetingsText();
         }
 
-        async Task PlayGreetingsTextCoroutine()
+        async Task PlayGreetingsText()
         {
             const float deviation = 0.1f;
             const float speed = 5.5f;

@@ -1,12 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Avatars;
 using Data;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public static class LocalStorage
 {
@@ -48,6 +52,81 @@ public static class LocalStorage
         PlayerPrefs.Save();
     }
 
+    public static Task<AudioClip> GetAudioClip(string filePath)
+    {
+        //  for WINDOWS only ?
+        using var request = UnityWebRequestMultimedia.GetAudioClip("file:///" + filePath, AudioType.UNKNOWN);
+        request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            var clip = DownloadHandlerAudioClip.GetContent(request);
+            return Task.FromResult(clip);
+        }
+
+        Log.LogMessage($"Ошибка загрузки аудиофайла: {filePath} " + request.error);
+
+        return Task.FromResult<AudioClip>(null);
+    }
+    
+    public static IEnumerator LoadAndPlayAudio(string filePath, AudioSource audioSource)
+    {
+        //  for WINDOWS only ?
+        using var request = UnityWebRequestMultimedia.GetAudioClip("file:///" + filePath, AudioType.UNKNOWN);
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            var clip = DownloadHandlerAudioClip.GetContent(request);
+            audioSource.clip = clip;
+            audioSource.Play();
+        }
+        else
+        {
+            Log.LogMessage($"Ошибка загрузки аудиофайла: {filePath} " + request.error);
+        }
+    }
+    
+    
+    public static string NormalizePath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            throw new ArgumentException("Path cannot be null or empty", nameof(path));
+        }
+
+        return path.Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+    }
+    
+    public static IEnumerable<string> GetAllFilesByExtensions(string streamingAssetsPath, string[] extensions)
+    {
+        extensions = extensions.Select(x => x.ToLower()).ToArray();
+        var path = $"{Application.streamingAssetsPath}/{streamingAssetsPath}";
+        var imageFilePaths = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+            .Where(f => extensions.Contains(f.Split('.').Last()))
+            .Select(NormalizePath);
+        return imageFilePaths;
+    }
+
+    public static string[] GetDirectory(string path)
+    {
+        return Directory.GetDirectories(path)
+            .Select(NormalizePath)
+            .ToArray();
+    }
+
+    public static Sprite LoadSprite(string path)
+    {
+        var texture = new Texture2D(1, 1);
+        texture.LoadImage(File.ReadAllBytes(path));
+        texture.wrapMode = TextureWrapMode.Clamp;
+        texture.filterMode = FilterMode.Point;
+        texture.mipMapBias = 0;
+        texture.Apply();
+        var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+        return sprite;
+    }
 
     public static string[] GetGreetingsVariants()
     {
@@ -79,11 +158,11 @@ public static class LocalStorage
     public static void SaveAtlasData(Texture2D texture, Rect[] rects)
     {
         var atlas = texture.EncodeToPNG();
-        var atlasPath = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlas.png");
+        var atlasPath = NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlas.png");
         File.WriteAllBytes(atlasPath, atlas);
         Log.LogMessage($"Saved atlas: {atlasPath}");
 
-        var rectsPath = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlasRects.json");
+        var rectsPath = NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlasRects.json");
         var uvRects = Utils.RectToUVRect(rects);
         var json = JsonConvert.SerializeObject(uvRects);
         File.WriteAllText(rectsPath, json);
@@ -97,8 +176,8 @@ public static class LocalStorage
 
     public static void LoadAtlasData(out Texture2D atlas, out Rect[] uvRects)
     {
-        var atlasPath = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlas.png");
-        var rectsPath = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlasRects.json");
+        var atlasPath = NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlas.png");
+        var rectsPath = NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/atlasRects.json");
         if (!File.Exists(atlasPath) || !File.Exists(rectsPath))
         {
             Log.LogMessage($"Atlas or UV Rects not found: {atlasPath}");
@@ -126,7 +205,7 @@ public static class LocalStorage
     public static void SaveAvatarsData()
     {
         var json = JsonConvert.SerializeObject(AvatarsStorage.GetAvatars());
-        var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/avatars.json");
+        var path = NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}/avatars.json");
         File.WriteAllText(path, json);
         Log.LogMessage($"Saved avatars data: {path}");
     }
@@ -145,7 +224,7 @@ public static class LocalStorage
 
     static void SaveLastWriteTimeAvatarFolder()
     {
-        var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}");
+        var path = NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}");
         var ticks = Directory.GetLastWriteTime(path).Ticks.ToString();
         PlayerPrefs.SetString(LastWriteTimeAvatarFolderKey, ticks);
     }
@@ -157,7 +236,7 @@ public static class LocalStorage
     /// <returns>true - Если папка не была изменена (ничего в ней не добавилось, не удалилось.)</returns>
     public static bool IsAvatarFolderNotChanged()
     {
-        var path = Utils.NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}");
+        var path = NormalizePath($"{Application.streamingAssetsPath}/{AvatarsFolder}");
         if (PlayerPrefs.HasKey(LastWriteTimeAvatarFolderKey))
         {
             var currentTicks = Directory.GetLastWriteTime(path).Ticks.ToString();

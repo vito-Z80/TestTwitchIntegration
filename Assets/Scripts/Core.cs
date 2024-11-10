@@ -42,6 +42,8 @@ public class Core : MonoBehaviour
 
     void Awake()
     {
+        // PlayerPrefs.DeleteAll();
+        // PlayerPrefs.Save();
         m_settings = LocalStorage.GetSettings();
         ChangeCameraPpu(m_settings.cameraPpu);
         m_camera = pixelPerfectCamera.GetComponent<Camera>();
@@ -70,7 +72,6 @@ public class Core : MonoBehaviour
 
      void Start()
      {
-        // PlayerPrefs.DeleteAll();
         connectPanel.gameObject.SetActive(false);
         Application.runInBackground = true;
         m_connect = new Connect(connectPanel);

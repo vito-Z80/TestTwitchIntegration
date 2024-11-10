@@ -1,7 +1,9 @@
 ﻿using System;
 using Data;
 using TMPro;
+using UI.File;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace UI.Greetings
@@ -17,6 +19,9 @@ namespace UI.Greetings
         [SerializeField] Toggle bottomRightToggle;
         [SerializeField] ToggleGroup toggleGroup;
 
+        [SerializeField] FileChooserUI imageFileChooser;
+        [SerializeField] FileChooserUI audioFileChooser;
+
         AppSettingsData m_settings;
 
         void Start()
@@ -25,6 +30,9 @@ namespace UI.Greetings
             SetActiveToggle(m_settings.greetingsImageAnchor ?? TMP_Compatibility.AnchorPositions.BottomRight);
             greetingsSlider.SetValueWithoutNotify(m_settings.greetingsImageSize);
             greetingsInputField.SetTextWithoutNotify($"{(int)(m_settings.greetingsImageSize * m_settings.windowHeight)}");
+
+            imageFileChooser.Init(m_settings.greetingsImagePath);
+            audioFileChooser.Init(m_settings.greetingsAudioPath);
         }
 
 
@@ -90,6 +98,16 @@ namespace UI.Greetings
                 default:
                     throw new ArgumentOutOfRangeException(nameof(anchor), anchor, null);
             }
+        }
+
+        public void OnImagePathChanged(int value)
+        {
+            m_settings.greetingsImagePath = imageFileChooser.GetPaths()[value];
+        }
+
+        public void OnAudioPathChanged(int value)
+        {
+            m_settings.greetingsAudioPath = audioFileChooser.GetPaths()[value];
         }
 
         public void SetVisibility()

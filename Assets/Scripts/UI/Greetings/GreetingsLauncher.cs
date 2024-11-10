@@ -1,4 +1,5 @@
-﻿using Data;
+﻿using System;
+using Data;
 using Twitch;
 using UnityEngine;
 
@@ -8,8 +9,18 @@ namespace UI.Greetings
     {
         [SerializeField] GreetingsImageUI greetingsImageUI;
         [SerializeField] GreeterNameUI greeterNameUI;
+        AudioSource m_audioSource;
         readonly ChatUserData m_defaultChatterData = new() { UserName = "testUser_name", Color = Color.white };
-        
+
+        AppSettingsData m_settings;
+
+
+        void Start()
+        {
+            m_settings = LocalStorage.GetSettings();
+            m_audioSource = GetComponent<AudioSource>();
+        }
+
         void OnEnable()
         {
             TwitchChatController.OnSayHello += Play;
@@ -18,20 +29,18 @@ namespace UI.Greetings
         void Play(ChatUserData chatterData)
         {
             // TODO нужно контролить более одного поздоровавшегося.
-            if (greetingsImageUI.IsPlaying() || greeterNameUI.IsPlaying()) return;
+            if (greetingsImageUI.IsPlaying() || greeterNameUI.IsPlaying() || m_audioSource.isPlaying) return;
             greetingsImageUI.gameObject.SetActive(true);
             greeterNameUI.gameObject.SetActive(true);
-            greetingsImageUI.Play();
+            _ = greetingsImageUI.Play();
             greeterNameUI.Play(chatterData);
+            
+            StartCoroutine(LocalStorage.LoadAndPlayAudio(m_settings.greetingsAudioPath, m_audioSource));
         }
 
         public void TestPlay()
         {
-            if (greetingsImageUI.IsPlaying() || greeterNameUI.IsPlaying()) return;
-            greetingsImageUI.gameObject.SetActive(true);
-            greeterNameUI.gameObject.SetActive(true);
-            greetingsImageUI.Play();
-            greeterNameUI.Play(m_defaultChatterData);
+            Play(m_defaultChatterData);
         }
 
         void OnDisable()

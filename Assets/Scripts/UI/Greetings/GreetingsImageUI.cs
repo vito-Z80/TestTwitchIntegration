@@ -3,38 +3,42 @@ using System.Threading.Tasks;
 using Data;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI.Greetings
 {
     public class GreetingsImageUI : MonoBehaviour
     {
-        AudioSource m_audio;
         RectTransform m_greetingsImageTransform;
 
         Vector2 m_imageTargetPosition;
         AppSettingsData m_settings;
-        
+
         bool m_isPlaying;
 
         void Start()
         {
             m_settings = LocalStorage.GetSettings();
             m_greetingsImageTransform = GetComponent<RectTransform>();
-            m_audio = GetComponent<AudioSource>();
             gameObject.SetActive(false);
         }
-        
+
         public bool IsPlaying() => m_isPlaying;
 
-        public void Play()
+        public async Task Play()
         {
             if (m_isPlaying) return;
             m_isPlaying = true;
+            await PlayGreetings();
+        }
+
+        void OnImageChanged()
+        {
+            //  TODO нинада каждый раз подгружать одну и ту же картинку !
+            var image = m_greetingsImageTransform.GetComponent<Image>();
+            image.sprite = LocalStorage.LoadSprite(m_settings.greetingsImagePath);
             SetImageAnchor();
             SetImageSize();
-            
-            _ = PlayGreetings();
-            m_audio.Play();
         }
 
         void SetImageAnchor()
@@ -100,6 +104,7 @@ namespace UI.Greetings
 
         async Task PlayGreetings()
         {
+            OnImageChanged();
             const float deviation = 0.1f;
             const float speed = 8.0f;
             while (Vector2.Distance(m_greetingsImageTransform.anchoredPosition, m_imageTargetPosition) > deviation)
@@ -123,6 +128,5 @@ namespace UI.Greetings
         {
             m_imageTargetPosition = targetPosition;
         }
-        
     }
 }
