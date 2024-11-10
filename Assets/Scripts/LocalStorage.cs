@@ -20,6 +20,7 @@ public static class LocalStorage
 
     public const string ImagesFolder = "Graphics/Images";
     public const string AvatarsFolder = "Graphics/Avatars";
+    public const string InteractionsFolder = "Graphics/Interactions";
 
     const string SettingsKey = "AppSettings";
     const string GreetingsVariantsKey = "GreetingsVariants";
@@ -51,7 +52,14 @@ public static class LocalStorage
         PlayerPrefs.SetString(SettingsKey, json);
         PlayerPrefs.Save();
     }
-    
+
+
+    public static string[] GetInteractionPaths()
+    {
+        var mainPath = NormalizePath($"{Application.streamingAssetsPath}/{InteractionsFolder}");
+        return GetDirectories(mainPath);
+    }
+
     public static IEnumerator LoadAndPlayAudio(string filePath, AudioSource audioSource)
     {
         //  for WINDOWS only ?
@@ -69,8 +77,8 @@ public static class LocalStorage
             Log.LogMessage($"Ошибка загрузки аудиофайла: {filePath} " + request.error);
         }
     }
-    
-    
+
+
     public static string NormalizePath(string path)
     {
         if (string.IsNullOrEmpty(path))
@@ -81,18 +89,26 @@ public static class LocalStorage
         return path.Replace('\\', Path.DirectorySeparatorChar)
             .Replace('/', Path.DirectorySeparatorChar);
     }
-    
-    public static IEnumerable<string> GetAllFilesByExtensions(string streamingAssetsPath, string[] extensions)
+
+    public static IEnumerable<string> GetFilesByExtensions(string streamingAssetsPath, string[] extensions, bool nestedDirectories = false)
     {
         extensions = extensions.Select(x => x.ToLower()).ToArray();
         var path = $"{Application.streamingAssetsPath}/{streamingAssetsPath}";
-        var imageFilePaths = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+        var imageFilePaths = Directory.GetFiles(path, "*.*", nestedDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
             .Where(f => extensions.Contains(f.Split('.').Last()))
             .Select(NormalizePath);
         return imageFilePaths;
     }
+    
+    public static IEnumerable<string> GetFilesByExtension(string fullDirectoryPath,string extension, bool nestedDirectories = false)
+    {
+        extension = extension.ToLower();
+        var imageFilePaths = Directory.GetFiles(fullDirectoryPath, $"*.{extension}", nestedDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+            .Select(NormalizePath);
+        return imageFilePaths;
+    }
 
-    public static string[] GetDirectory(string path)
+    public static string[] GetDirectories(string path)
     {
         return Directory.GetDirectories(path)
             .Select(NormalizePath)
@@ -233,6 +249,7 @@ public static class LocalStorage
             {
                 Log.LogMessage($"The contents of the folder have been changed: {path}");
             }
+
             return result;
         }
 

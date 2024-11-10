@@ -51,7 +51,7 @@ namespace Avatars
         Vector3 m_flyDirection; // Направление движения атакованной цели
         Vector3 m_lastPosition;
         public AreaOffset areaOffset;
-
+        public bool isInteract;
         AppSettingsData m_settings;
 
         Coroutine m_pursuitCoroutine;
@@ -69,7 +69,7 @@ namespace Avatars
         }
 
         public SpriteRenderer GetSpriteRenderer() => m_spriteRenderer ?? GetComponentInChildren<SpriteRenderer>();
-
+        public void SetRandomTargetDirection(Vector3 targetDirection) => m_randomTargetDirection = targetDirection;
 
         public bool HasState(AvatarState state)
         {
@@ -88,6 +88,8 @@ namespace Avatars
             m_leaveTime = 5.0f * 30.0f;
         }
 
+        public AvatarData GetAvatarData() => m_avatarData;
+
         void Update()
         {
             if (m_avatarStates == null) return;
@@ -96,7 +98,7 @@ namespace Avatars
 
             var cameraWorldSize = m_camera.orthographicSize * 2;
             var pixelsPerUnit = m_settings.windowWidth / cameraWorldSize;
-            var speed = m_avatarData.Animations[m_currentState][m_currentStateVariant].AvatarSpeed;
+            var speed = isInteract ? 90.0f : m_avatarData.Animations[m_currentState][m_currentStateVariant].AvatarSpeed;
             var deltaTime = speed / pixelsPerUnit * Time.deltaTime;
 
             // var deltaTime = Time.deltaTime * m_settings.avatarsSpeed * 10.0f * randomSpeed;
@@ -217,6 +219,7 @@ namespace Avatars
             if (m_idleTime > 0.0f) return;
 
             transform.position = Vector3.MoveTowards(transform.position, m_randomTargetDirection, deltaTime);
+            if (isInteract) return;
             if (Mathf.Abs(transform.position.x - m_randomTargetDirection.x) < 0.00625f)
             {
                 if (m_avatarStates.ContainsKey(AvatarState.Idle) && Random.value > 0.75f)
@@ -247,20 +250,30 @@ namespace Avatars
             }
         }
 
+        public void LookLeft()
+        {
+            m_currentState = AvatarState.Left;
+            if (m_currentStateVariant >= m_avatarStates[AvatarState.Left].Length) m_currentStateVariant = 0;
+            m_spriteRenderer.flipX = m_avatarStates[AvatarState.Left][m_currentStateVariant].FlipX;
+        }
+
+        public void LookRight()
+        {
+            m_currentState = AvatarState.Right;
+            if (m_currentStateVariant >= m_avatarStates[AvatarState.Right].Length) m_currentStateVariant = 0;
+            m_spriteRenderer.flipX = m_avatarStates[AvatarState.Right][m_currentStateVariant].FlipX;
+        }
+        
 
         void SetState()
         {
             if (transform.position.x > m_lastPosition.x)
             {
-                m_currentState = AvatarState.Right;
-                if (m_currentStateVariant >= m_avatarStates[AvatarState.Right].Length) m_currentStateVariant = 0;
-                m_spriteRenderer.flipX = m_avatarStates[AvatarState.Right][m_currentStateVariant].FlipX;
+                LookRight();
             }
             else if (transform.position.x < m_lastPosition.x)
             {
-                m_currentState = AvatarState.Left;
-                if (m_currentStateVariant >= m_avatarStates[AvatarState.Left].Length) m_currentStateVariant = 0;
-                m_spriteRenderer.flipX = m_avatarStates[AvatarState.Left][m_currentStateVariant].FlipX;
+                LookLeft();
             }
             else
             {

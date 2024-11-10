@@ -4,6 +4,7 @@ using Avatars;
 using Data;
 using Images;
 using TMPro;
+using UI.Interaction;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -13,6 +14,7 @@ namespace UI.ChatCommandWindow
     {
         [SerializeField] ImageController imageController;
         [SerializeField] AvatarsController avatarsController;
+        [SerializeField] InteractionUI interactionUI;
         [SerializeField] TMP_InputField inputField;
 
         AppSettingsData m_settings;
@@ -34,11 +36,12 @@ namespace UI.ChatCommandWindow
             var imageTag = m_settings.imageNameTag;
             var avatarTag = m_settings.avatarNameTag;
             m_text.Clear();
-            Section("Images", imageController.GetImageNames().ToArray(), imageTag);
+            Section("Alerts", imageController.GetImageNames().ToArray(), imageTag);
             Section("Avatars", avatarsController.GetAvatarNames().ToArray(), avatarTag);
+            Section("Interactions", interactionUI.GetInteractionNames());
         }
 
-        void Section(string sectionName, string[] names, string sectionTag)
+        void Section(string sectionName, string[] names, string sectionTag = "")
         {
             m_text.Append(GetSectionHeader(sectionName));
             foreach (var text in names)

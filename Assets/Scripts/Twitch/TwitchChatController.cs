@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Data;
 using UnityEngine;
@@ -15,6 +16,8 @@ namespace Twitch
         public static Action<ChatUserData> OnSayHello;
         public static event Action<string> OnImageShown;
         public static event Action<ChatUserData, string> OnHighlightedMessage;
+
+        public static event Action<ChatUserData, ChatUserData, string> OnChattersInteraction;
 
 
         const string HighlightedMsg = "highlighted-message";
@@ -40,6 +43,7 @@ namespace Twitch
             if (userName != null)
             {
                 HighlightedMessage(userName, chatMessage);
+                await InteractionMessage(userName, chatMessage);
 
                 if (m_settings.useAvatars)
                 {
@@ -57,6 +61,15 @@ namespace Twitch
                     await SayHello(userName, chatMessage);
                 }
             }
+        }
+
+        Task InteractionMessage(string userName, string chatMessage)
+        {
+            var otherChatterData = m_chatters.FirstOrDefault(c => chatMessage.Contains(c.Key)).Value;
+            var chatterData = m_chatters[userName];
+            if (otherChatterData == null || chatterData.UserName == otherChatterData.UserName) return Task.CompletedTask;
+            OnChattersInteraction?.Invoke(chatterData, otherChatterData, chatMessage);
+            return Task.CompletedTask;
         }
 
         Task CreateUserData(string userName, string[] message)

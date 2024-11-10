@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Data;
 using Twitch;
 using UI;
@@ -57,6 +58,56 @@ namespace Avatars
                     }
                 }
             }
+        }
+
+        public async Task<bool> DirectAvatars(string userName1, string userName2)
+        {
+            var avatar1 = m_avatars[userName1];
+            var avatar2 = m_avatars[userName2];
+            if (avatar1.isInteract || avatar2.isInteract) return false;
+            avatar1.isInteract = true;
+            avatar2.isInteract = true;
+            var avatar1TargetPosition = new Vector3(-2, 0, 0);
+            var avatar2TargetPosition = new Vector3(2, 0, 0);
+            avatar1.SetRandomTargetDirection(avatar1TargetPosition);
+            avatar2.SetRandomTargetDirection(avatar2TargetPosition);
+
+
+            var avatar1Dis = Vector3.Distance(avatar1.transform.position, avatar1TargetPosition);
+            var avatar2Dis = Vector3.Distance(avatar2.transform.position, avatar2TargetPosition);
+            
+            while (avatar1Dis > 0.05f || avatar2Dis > 0.05f)
+            {
+                avatar1Dis = Vector3.Distance(avatar1.transform.position, avatar1TargetPosition);
+                avatar2Dis = Vector3.Distance(avatar2.transform.position, avatar2TargetPosition);
+
+                if (avatar1Dis <= 0.05f)
+                {
+                    avatar1.transform.position = avatar1TargetPosition;
+                    avatar1.LookRight();
+                }
+
+                if (avatar2Dis <= 0.05f)
+                {
+                    avatar2.transform.position = avatar2TargetPosition;
+                    avatar2.LookLeft();
+                }
+                
+                await Task.Yield();
+            }
+
+            avatar1.LookRight();
+            avatar2.LookLeft();
+            return true;
+        }
+
+        public async Task WaitInteraction(string userName1, string userName2)
+        {
+            await Task.Delay(4000);
+            var avatar1 = m_avatars[userName1];
+            var avatar2 = m_avatars[userName2];
+            avatar1.isInteract = false;
+            avatar2.isInteract = false;
         }
 
 

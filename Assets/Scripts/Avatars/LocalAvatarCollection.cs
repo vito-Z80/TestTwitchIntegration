@@ -42,12 +42,12 @@ namespace Avatars
 
             var avatarsData = new Dictionary<string, AvatarData>();
             //  имена папок аватаров
-            var avatarFolderPaths = LocalStorage.GetDirectory(path);
+            var avatarFolderPaths = LocalStorage.GetDirectories(path);
             foreach (var avatarFolder in avatarFolderPaths)
             {
                 var avatarName = Path.GetFileName(avatarFolder).ToLower();
 
-                var avatarVariants = AvatarVariants(LocalStorage.GetDirectory(avatarFolder));
+                var avatarVariants = AvatarVariants(LocalStorage.GetDirectories(avatarFolder));
                 if (avatarVariants != null)
                 {
                     //  create new if states exists
@@ -180,7 +180,7 @@ namespace Avatars
         void ProcessDirectory(string path, List<string> filesByDirectory)
         {
             filesByDirectory.Add(Path.GetFullPath(path));
-            foreach (var directory in LocalStorage.GetDirectory(path))
+            foreach (var directory in LocalStorage.GetDirectories(path))
             {
                 ProcessDirectory(directory, filesByDirectory);
             }

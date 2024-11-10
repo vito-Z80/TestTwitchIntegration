@@ -16,7 +16,7 @@ namespace UI.File
 
         void Start()
         {
-            m_paths = LocalStorage.GetAllFilesByExtensions(streamingAssetsFilePath, extensions).ToArray();
+            m_paths = LocalStorage.GetFilesByExtensions(streamingAssetsFilePath, extensions, true).ToArray();
             SetDropdownOptions(m_paths);
         }
 
