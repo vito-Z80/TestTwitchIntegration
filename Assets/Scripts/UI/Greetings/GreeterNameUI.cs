@@ -29,6 +29,7 @@ namespace UI.Greetings
         {
             if (m_isPlaying) return;
             m_isPlaying = true;
+            transform.SetAsLastSibling();
             if (LocalStorage.GetSettings().displayNicknameColor)
             {
                 m_text.color = userData.Color;

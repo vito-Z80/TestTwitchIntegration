@@ -14,7 +14,7 @@ namespace Twitch
         public static Action<string, string> OnAvatarPursuit;
         public static Action<ChatUserData> OnSayHello;
         public static event Action<string> OnImageShown;
-        public static event Action<string,string> OnHighlightedMessage;
+        public static event Action<ChatUserData, string> OnHighlightedMessage;
 
 
         const string HighlightedMsg = "highlighted-message";
@@ -34,14 +34,13 @@ namespace Twitch
 
             var chatTagsParts = chatTags.Split(';', StringSplitOptions.RemoveEmptyEntries);
             var userName = m_parser.GetUserName(chatTagsParts);
-            
+
             await CreateUserData(userName, chatTagsParts);
 
             if (userName != null)
             {
-                
                 HighlightedMessage(userName, chatMessage);
-                
+
                 if (m_settings.useAvatars)
                 {
                     await AttackUser(userName, chatMessage);
@@ -59,7 +58,7 @@ namespace Twitch
                 }
             }
         }
-        
+
         Task CreateUserData(string userName, string[] message)
         {
             var settings = LocalStorage.GetSettings();
@@ -83,9 +82,11 @@ namespace Twitch
                     IsFirstMessage = firstMessage,
                     IsReturningChatter = m_parser.IsReturnedChatter(message),
                     Color = nameColor,
+                    MsgId = msgId
                 };
                 m_chatters.Add(userName, userData);
             }
+
             m_parser.SetBadges(userData, message);
 
             return Task.CompletedTask;
@@ -143,14 +144,13 @@ namespace Twitch
 
         void HighlightedMessage(string userName, string message)
         {
-            if (m_chatters.TryGetValue(message, out var userData))
+            if (m_chatters.TryGetValue(userName, out var userData))
             {
                 if (userData.MsgId == HighlightedMsg)
                 {
-                    OnHighlightedMessage?.Invoke(userName, message);
+                    OnHighlightedMessage?.Invoke(userData, message);
                 }
             }
         }
-        
     }
 }

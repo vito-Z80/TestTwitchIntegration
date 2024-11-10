@@ -51,23 +51,6 @@ public static class LocalStorage
         PlayerPrefs.SetString(SettingsKey, json);
         PlayerPrefs.Save();
     }
-
-    public static Task<AudioClip> GetAudioClip(string filePath)
-    {
-        //  for WINDOWS only ?
-        using var request = UnityWebRequestMultimedia.GetAudioClip("file:///" + filePath, AudioType.UNKNOWN);
-        request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.Success)
-        {
-            var clip = DownloadHandlerAudioClip.GetContent(request);
-            return Task.FromResult(clip);
-        }
-
-        Log.LogMessage($"Ошибка загрузки аудиофайла: {filePath} " + request.error);
-
-        return Task.FromResult<AudioClip>(null);
-    }
     
     public static IEnumerator LoadAndPlayAudio(string filePath, AudioSource audioSource)
     {
