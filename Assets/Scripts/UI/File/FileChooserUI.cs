@@ -20,9 +20,20 @@ namespace UI.File
             SetDropdownOptions(m_paths);
         }
 
-        public void Init(string path)
+        public void Init(ref string path)
         {
-            var index = m_paths.ToList().FindIndex(p => p == path);
+            if (m_paths == null)
+            {
+                m_paths = LocalStorage.GetFilesByExtensions(streamingAssetsFilePath, extensions, true).ToArray();
+                SetDropdownOptions(m_paths);
+            }
+
+            if (path.Length == 0)
+            {
+                path = m_paths[0];
+            }
+            var p1 = path;
+            var index = m_paths.ToList().FindIndex(p => p == p1);
             dropdown.value = index;
         }
 

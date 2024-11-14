@@ -31,8 +31,8 @@ namespace UI.Greetings
             greetingsSlider.SetValueWithoutNotify(m_settings.greetingsImageSize);
             greetingsInputField.SetTextWithoutNotify($"{(int)(m_settings.greetingsImageSize * m_settings.windowHeight)}");
 
-            imageFileChooser.Init(m_settings.greetingsImagePath);
-            audioFileChooser.Init(m_settings.greetingsAudioPath);
+            imageFileChooser.Init(ref m_settings.greetingsImagePath);
+            audioFileChooser.Init(ref m_settings.greetingsAudioPath);
         }
 
 

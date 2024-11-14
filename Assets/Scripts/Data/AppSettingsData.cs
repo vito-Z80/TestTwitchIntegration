@@ -21,8 +21,8 @@ namespace Data
         [JsonProperty("mv")] public float masterVolume = 0.5f;
         
         [JsonProperty("ws")] public int cameraPpu = 13; //  1-24
-        [JsonProperty("ww")] public int windowWidth = 640; //  pixel
-        [JsonProperty("wh")] public int windowHeight = 360; //  pixel
+        [JsonProperty("ww")] public int windowWidth = 960; //  pixel
+        [JsonProperty("wh")] public int windowHeight = 540; //  pixel
 
         [JsonProperty("ps")] public bool pixelSnapping;
         [JsonProperty("r")] public bool randomSpeedEnabled;
@@ -38,8 +38,8 @@ namespace Data
         [JsonProperty("it")] public string imageNameTag = "!";
         
         
-        [JsonProperty("gia")] public TMP_Compatibility.AnchorPositions? greetingsImageAnchor;
-        [JsonProperty("gis")] public float greetingsImageSize = 0.1f;
+        [JsonProperty("gia")] public TMP_Compatibility.AnchorPositions? greetingsImageAnchor = TMP_Compatibility.AnchorPositions.BottomRight;
+        [JsonProperty("gis")] public float greetingsImageSize = 0.5f;
         [JsonProperty("gip")] public string greetingsImagePath = "";
         [JsonProperty("gap")] public string greetingsAudioPath = "";
     }

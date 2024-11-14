@@ -33,15 +33,6 @@ namespace UI.Greetings
             await PlayGreetings();
         }
 
-        void OnImageChanged()
-        {
-            //  TODO нинада каждый раз подгружать одну и ту же картинку !
-            var image = m_greetingsImageTransform.GetComponent<Image>();
-            image.sprite = LocalStorage.LoadSprite(m_settings.greetingsImagePath);
-            SetImageAnchor();
-            SetImageSize();
-        }
-
         void SetImageAnchor()
         {
             switch (m_settings.greetingsImageAnchor)
@@ -105,7 +96,13 @@ namespace UI.Greetings
 
         async Task PlayGreetings()
         {
-            OnImageChanged();
+            
+            //  TODO нинада каждый раз подгружать одну и ту же картинку !
+            var image = m_greetingsImageTransform.GetComponent<Image>();
+            image.sprite = LocalStorage.LoadSprite(m_settings.greetingsImagePath);
+            SetImageSize();
+            SetImageAnchor();
+            
             const float deviation = 0.1f;
             const float speed = 8.0f;
             while (Vector2.Distance(m_greetingsImageTransform.anchoredPosition, m_imageTargetPosition) > deviation)

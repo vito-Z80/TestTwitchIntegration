@@ -30,12 +30,20 @@ namespace UI.Greetings
         {
             // TODO нужно контролить более одного поздоровавшегося.
             if (greetingsImageUI.IsPlaying() || greeterNameUI.IsPlaying() || m_audioSource.isPlaying) return;
-            greetingsImageUI.gameObject.SetActive(true);
+            if (m_settings.greetingsImagePath.Length > 0)
+            {
+                greetingsImageUI.gameObject.SetActive(true);    
+                _ = greetingsImageUI.Play();
+            }
+            
             greeterNameUI.gameObject.SetActive(true);
-            _ = greetingsImageUI.Play();
             greeterNameUI.Play(chatterData);
             
-            StartCoroutine(LocalStorage.LoadAndPlayAudio(m_settings.greetingsAudioPath, m_audioSource));
+            if (m_settings.greetingsAudioPath.Length > 0)
+            {
+                StartCoroutine(LocalStorage.LoadAndPlayAudio(m_settings.greetingsAudioPath, m_audioSource));    
+            }
+            
         }
 
         public void TestPlay()
